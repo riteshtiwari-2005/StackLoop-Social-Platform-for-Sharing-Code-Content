@@ -19,7 +19,8 @@ export default function DashboardPage() {
     title: "",
     content: "",
     image: "",
-    category: "Technology"
+    category: "Technology",
+    isPremium: false
   });
 
   const categories = ["Technology", "Design", "Programming", "Lifestyle", "Business"];
@@ -46,9 +47,10 @@ export default function DashboardPage() {
   };
 
   const handlePostFormChange = (e) => {
+    const { name, value, type, checked } = e.target;
     setPostForm({
       ...postForm,
-      [e.target.name]: e.target.value
+      [name]: type === 'checkbox' ? checked : value
     });
   };
 
@@ -57,7 +59,7 @@ export default function DashboardPage() {
     try {
       const data = await createPost(postForm);
       setPosts([data.post, ...posts]);
-      setPostForm({ title: "", content: "", image: "", category: "Technology" });
+      setPostForm({ title: "", content: "", image: "", category: "Technology", isPremium: false });
       setIsModalOpen(false);
     } catch (err) {
       console.error("Error creating post:", err);
@@ -142,6 +144,20 @@ export default function DashboardPage() {
             rows="6"
             required
           />
+
+          <div className="flex items-center gap-3 p-3 bg-brand-50 border border-brand-100 rounded-xl">
+            <input
+              id="isPremiumModal"
+              name="isPremium"
+              type="checkbox"
+              checked={postForm.isPremium}
+              onChange={handlePostFormChange}
+              className="w-4 h-4 text-brand-600 border-slate-300 rounded focus:ring-brand-500"
+            />
+            <label htmlFor="isPremiumModal" className="text-sm font-semibold text-brand-900 cursor-pointer">
+              Mark as Premium Content
+            </label>
+          </div>
 
           <InputField
             label="Image URL"

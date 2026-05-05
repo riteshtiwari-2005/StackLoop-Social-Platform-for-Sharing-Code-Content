@@ -47,12 +47,15 @@ const postSchema = new mongoose.Schema(
   },
 ],
 
-tags:[
-  {
-  type:"String",
-
-  }
-]
+    tags: [
+      {
+        type: "String",
+      },
+    ],
+    isPremium: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true }
 );

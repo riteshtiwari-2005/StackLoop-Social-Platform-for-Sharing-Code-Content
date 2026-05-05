@@ -7,6 +7,11 @@ export const getAllPosts = async () => {
   return response.data;
 };
 
+export const getPremiumPosts = async () => {
+  const response = await api.get("/auth/v1/posts/premium");
+  return response.data;
+};
+
 export const createPost = async (postData) => {
   const response = await api.post("/auth/v1/posts/create", postData);
   return response.data;

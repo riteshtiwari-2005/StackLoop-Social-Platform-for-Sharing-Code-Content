@@ -26,6 +26,9 @@ const upload = multer({storage}); // Configure multer to save to an uploads fold
 // 🔐 Get all posts
 router.get("/posts", authMiddleware, postController.getAllPosts);
 
+// 🔐 Get premium posts
+router.get("/posts/premium", authMiddleware, postController.premiumPost);
+
 // Create new post
 router.post("/posts/create", jwtmiddleware, upload.single("image"), postController.createPost);
 
@@ -42,6 +45,11 @@ router.get("/me/post", authMiddleware, postController.getMyPosts);
 
 router.post("/posts/like/:postid", jwtmiddleware, postController.likepost);
 router.post("/recentpost/:username",jwtmiddleware,postController.recentpost)
+
+// creates  order 
+router.post("/api/payment/create-order",jwtmiddleware,postController.createOrder )
+// verify   order 
+router.post("/api/payment/verify",jwtmiddleware,postController.verifyPayment  )
 
 
 module.exports = router;

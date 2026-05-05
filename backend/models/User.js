@@ -20,6 +20,14 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    isPremium: {
+      type: Boolean,
+      default: false,
+    },
+
+    premiumExpiresAt: {
+      type: Date,
+    },
 
    
   },

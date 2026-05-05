@@ -10,12 +10,15 @@ import OtherUserProfilePage from "./Pages/OtherUserProfilePage";
 import SinglePostPage from "./Pages/SinglePostPage";
 import LoginPage from "./Pages/LoginPage";
 import RegisterPage from "./Pages/RegisterPage";
+import PremiumPage from "./Pages/PremiumPage";
+import axios from "./services/api";
+import { buyrazorpay } from "./services/paymentService";
 
 function Navbar() {
   const dispatch = useDispatch();
   const token = useSelector((state) => state.auth.token);
   const user = useSelector((state) => state.auth.user);
-
+  
   const activeCls = ({ isActive }) =>
     isActive
       ? "text-brand-600 font-semibold"
@@ -56,12 +59,17 @@ function Navbar() {
           <div className="flex items-center gap-1 sm:gap-2">
             <NavLink to="/" end className={({isActive}) => `hidden md:block px-3 py-2 rounded-lg text-sm font-medium transition-colors ${isActive ? 'text-brand-600 bg-brand-50' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'}`}>Home</NavLink>
             <NavLink to="/dashboard" className={({isActive}) => `hidden md:block px-3 py-2 rounded-lg text-sm font-medium transition-colors ${isActive ? 'text-brand-600 bg-brand-50' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'}`}>Feed</NavLink>
+            <NavLink to="/premium" className={({isActive}) => `hidden md:block px-3 py-2 rounded-lg text-sm font-medium transition-colors ${isActive ? 'text-brand-600 bg-brand-50' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'}`}>Premium</NavLink>
 
             {token ? (
               <>
                 <NavLink to="/create-post" className="flex items-center gap-1.5 px-4 py-2 bg-slate-900 text-white text-sm font-medium rounded-full hover:bg-slate-700 transition-colors">
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
                   <span className="hidden sm:block">Write</span>
+                </NavLink>
+
+                <NavLink className="flex items-center gap-1.5 px-4 py-2 bg-red-500 text-white text-sm font-medium rounded-full hover:bg-red-600 transition-colors">
+                  <span className="hidden sm:block"  onClick={buyrazorpay}>Buy Subscription</span>
                 </NavLink>
                 <NavLink to="/profile" className={({isActive}) => `w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm transition-all ${isActive ? 'bg-brand-100 text-brand-700 ring-2 ring-brand-400' : 'bg-slate-100 text-slate-600 hover:bg-brand-50 hover:text-brand-600'}`}>
                   {(user?.username || user?.name || 'U').slice(0, 2).toUpperCase()}
@@ -103,6 +111,7 @@ function App() {
             <Route path="/user/:id" element={<OtherUserProfilePage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
+            <Route path="/premium" element={<PremiumPage />} />
             {/* Protected Routes */}
             <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
             <Route path="/create-post" element={<ProtectedRoute><CreatePostPage /></ProtectedRoute>} />

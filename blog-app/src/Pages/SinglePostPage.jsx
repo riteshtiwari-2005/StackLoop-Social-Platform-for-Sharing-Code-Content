@@ -202,6 +202,11 @@ export default function SinglePostPage() {
 
           {/* Category + meta */}
           <div className="flex items-center gap-3 mb-6">
+            {post.isPremium && (
+              <span className="px-3 py-1 bg-amber-500 text-white text-xs font-bold uppercase tracking-wider rounded-full shadow-sm">
+                Premium
+              </span>
+            )}
             <span className="px-3 py-1 bg-brand-50 text-brand-700 text-xs font-bold uppercase tracking-wider rounded-full">
               {post.category || 'Article'}
             </span>

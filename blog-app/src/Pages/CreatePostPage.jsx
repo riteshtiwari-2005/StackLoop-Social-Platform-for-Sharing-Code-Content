@@ -5,14 +5,15 @@ import InputField from "../components/UI/InputField";
 import Toast from "../components/UI/Toast";
 
 export default function CreatePostPage() {
-  const [formData, setFormData] = useState({ title: "", content: "", image: null, category: "Technology" });
+  const [formData, setFormData] = useState({ title: "", content: "", image: null, category: "Technology", isPremium: false });
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState(null);
 
   const categories = ["Technology", "Design", "Programming", "Lifestyle", "Business"];
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value, type, checked } = e.target;
+    setFormData({ ...formData, [name]: type === 'checkbox' ? checked : value });
   };
 
   const handleSubmit = async (e) => {
@@ -23,16 +24,17 @@ export default function CreatePostPage() {
       data.append("title", formData.title);
       data.append("content", formData.content);
       data.append("category", formData.category);
+      data.append("isPremium", formData.isPremium);
       if (formData.image) {
         data.append("image", formData.image);
       }
 
       await createPost(data);
       setToast({ message: "Post published successfully!", type: "success" });
-      setFormData({ title: "", content: "", image: null, category: "Technology" });
+      setFormData({ title: "", content: "", image: null, category: "Technology", isPremium: false });
     } catch (err) {
-      setToast({ message: "Simulated success! (Backend unavailable)", type: "success" });
-      setFormData({ title: "", content: "", image: null, category: "Technology" });
+      const errorMsg = err.response?.data?.msg || "Failed to publish post";
+      setToast({ message: errorMsg, type: "error" });
     } finally {
       setLoading(false);
     }
@@ -73,6 +75,23 @@ export default function CreatePostPage() {
               >
                 {categories.map(c => <option key={c} value={c}>{c}</option>)}
               </select>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3 p-4 bg-amber-50 border border-amber-100 rounded-xl">
+            <div className="flex items-center h-5">
+              <input
+                id="isPremium"
+                name="isPremium"
+                type="checkbox"
+                checked={formData.isPremium}
+                onChange={handleChange}
+                className="w-5 h-5 text-brand-600 border-slate-300 rounded focus:ring-brand-500 transition-all cursor-pointer"
+              />
+            </div>
+            <div className="ml-2 text-sm">
+              <label htmlFor="isPremium" className="font-bold text-amber-900 cursor-pointer">Premium Content</label>
+              <p className="text-amber-700">Checking this will make the post exclusive to premium subscribers.</p>
             </div>
           </div>
 
