@@ -1,22 +1,134 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@500;600;700&display=swap');
+﻿@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Sora:wght@400;500;600;700&family=Syne:wght@500;600;700&display=swap");
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
-  body {
-    @apply bg-surface-dim text-slate-800 antialiased min-h-screen;
+  :root {
+    color-scheme: dark;
   }
-  
-  h1, h2, h3, h4, h5, h6 {
-    @apply font-display text-slate-900 tracking-tight;
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply min-h-screen bg-black font-sans antialiased text-zinc-200;
+    background-color: #000;
+    background-image:
+      radial-gradient(circle at 10% -20%, rgba(0, 209, 141, 0.14), transparent 30%),
+      radial-gradient(circle at 90% 0%, rgba(255, 196, 77, 0.1), transparent 25%);
+    background-attachment: fixed;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-display tracking-tight text-zinc-100;
+  }
+
+  a {
+    @apply transition-colors;
+  }
+
+  ::selection {
+    background: rgba(0, 209, 141, 0.32);
+    color: #fff;
+  }
+
+  #root {
+    @apply min-h-screen;
   }
 }
 
 @layer components {
-  /* Common utility for the app shell wrapper */
   .layout-container {
-    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+    @apply mx-auto max-w-[1700px] px-4 sm:px-6 lg:px-8;
   }
+
+  .app-panel {
+    @apply rounded-3xl border border-white/10 bg-zinc-950/80 shadow-panel backdrop-blur-sm;
+  }
+
+  .app-chip {
+    @apply inline-flex items-center gap-2 rounded-full border border-white/10 bg-zinc-900/80 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.22em] text-zinc-300;
+  }
+
+  .section-title {
+    @apply font-display text-3xl font-bold tracking-tight text-zinc-100 sm:text-4xl;
+  }
+
+  .section-copy {
+    @apply text-sm leading-6 text-zinc-400 sm:text-base;
+  }
+
+  .surface-card {
+    @apply rounded-3xl border border-white/10 bg-zinc-950/75 shadow-soft backdrop-blur-sm;
+  }
+
+  .signal-dot {
+    @apply inline-block h-2.5 w-2.5 rounded-full bg-brand-400;
+  }
+
+  .command-input {
+    @apply w-full rounded-2xl border border-white/10 bg-zinc-950 px-4 py-3 text-sm text-zinc-200 placeholder:text-zinc-600 focus:border-brand-300 focus:outline-none;
+  }
+}
+
+.snippet-editor textarea {
+  outline: none;
+}
+
+.snippet-editor .token.comment,
+.snippet-editor .token.prolog,
+.snippet-editor .token.doctype,
+.snippet-editor .token.cdata {
+  color: #71717a;
+}
+
+.snippet-editor .token.punctuation {
+  color: #d4d4d8;
+}
+
+.snippet-editor .token.property,
+.snippet-editor .token.tag,
+.snippet-editor .token.constant,
+.snippet-editor .token.symbol,
+.snippet-editor .token.deleted {
+  color: #fca5a5;
+}
+
+.snippet-editor .token.boolean,
+.snippet-editor .token.number {
+  color: #f59e0b;
+}
+
+.snippet-editor .token.selector,
+.snippet-editor .token.attr-name,
+.snippet-editor .token.string,
+.snippet-editor .token.char,
+.snippet-editor .token.builtin,
+.snippet-editor .token.inserted {
+  color: #86efac;
+}
+
+.snippet-editor .token.operator,
+.snippet-editor .token.entity,
+.snippet-editor .token.url {
+  color: #e4e4e7;
+}
+
+.snippet-editor .token.atrule,
+.snippet-editor .token.attr-value,
+.snippet-editor .token.keyword {
+  color: #67e8f9;
+}
+
+.snippet-editor .token.function,
+.snippet-editor .token.class-name {
+  color: #a5b4fc;
 }

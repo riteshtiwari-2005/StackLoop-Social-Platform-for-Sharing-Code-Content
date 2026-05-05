@@ -1,7 +1,6 @@
-import React from "react";
 
 export default function Skeleton({ type = "text", className = "" }) {
-  const baseClass = "animate-pulse bg-slate-200";
+  const baseClass = "animate-pulse bg-white/10";
 
   const styles = {
     text: "h-4 rounded w-3/4",

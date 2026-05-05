@@ -1,12 +1,12 @@
-import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+﻿import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
-import { getAllPosts, createPost, likePost } from "../services/postService";
-import Modal from "../components/UI/Modal";
+import { Link } from "react-router-dom";
+import Avatar from "../components/UI/Avatar";
 import Button from "../components/UI/Button";
 import Card from "../components/UI/Card";
-import Avatar from "../components/UI/Avatar";
 import InputField from "../components/UI/InputField";
+import Modal from "../components/UI/Modal";
+import { createPost, getAllPosts, likePost } from "../services/postService";
 
 export default function DashboardPage() {
   const { user } = useSelector((state) => state.auth);
@@ -20,7 +20,7 @@ export default function DashboardPage() {
     content: "",
     image: "",
     category: "Technology",
-    isPremium: false
+    isPremium: false,
   });
 
   const categories = ["Technology", "Design", "Programming", "Lifestyle", "Business"];
@@ -34,12 +34,10 @@ export default function DashboardPage() {
       setLoading(true);
       const data = await getAllPosts();
       setPosts(data.posts || []);
-    } catch (err) {
-      console.error(err);
-      // Fallback dummy posts
+    } catch {
       setPosts([
-        { _id: '1', title: 'Why use Tailwind CSS?', content: 'Utility classes provide a robust design system...', author: { name: 'Alice' }, likes: [1, 2], comments: [1], views: Array(120).fill(''), category: "Design" },
-        { _id: '2', title: 'React Performance Tips', content: 'Memoization and lazy loading can improve UX drastically.', author: { name: 'Bob' }, likes: [1], comments: [], views: Array(45).fill(''), category: "Programming" }
+        { _id: "1", title: "Shipping React features faster", content: "A practical workflow for keeping momentum.", author: { name: "Alice" }, likes: [1, 2], comments: [1], views: Array(120).fill(""), category: "Programming" },
+        { _id: "2", title: "Design QA for modern teams", content: "Simple checks that prevent visual regressions.", author: { name: "Bob" }, likes: [1], comments: [], views: Array(45).fill(""), category: "Design" },
       ]);
     } finally {
       setLoading(false);
@@ -48,10 +46,7 @@ export default function DashboardPage() {
 
   const handlePostFormChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setPostForm({
-      ...postForm,
-      [name]: type === 'checkbox' ? checked : value
-    });
+    setPostForm((prev) => ({ ...prev, [name]: type === "checkbox" ? checked : value }));
   };
 
   const handleCreatePost = async (e) => {
@@ -69,164 +64,132 @@ export default function DashboardPage() {
   const handleLike = async (postId) => {
     if (!userId) return;
 
-    // Optimistic update
-    setPosts(currentPosts => currentPosts.map(p => {
-      if (p._id === postId) {
-        const hasLiked = p.likes?.includes(userId);
-        const newLikes = hasLiked 
-          ? p.likes.filter(id => id !== userId)
-          : [...(p.likes || []), userId];
-        return { ...p, likes: newLikes };
-      }
-      return p;
-    }));
+    setPosts((currentPosts) =>
+      currentPosts.map((post) => {
+        if (post._id !== postId) return post;
+        const hasLiked = post.likes?.includes(userId);
+        return {
+          ...post,
+          likes: hasLiked ? post.likes.filter((id) => id !== userId) : [...(post.likes || []), userId],
+        };
+      })
+    );
 
     try {
       await likePost(postId);
-    } catch (err) {
-      console.error("Error liking post:", err);
-      // Revert could be done here, but omitting for simplicity in feed
+    } catch {
+      fetchPosts();
     }
   };
 
-  return (
-    <div className="max-w-5xl mx-auto flex flex-col gap-8">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-6 border-b border-slate-200">
-        <div>
-          <h2 className="text-3xl font-display font-bold text-slate-900">Developer Feed</h2>
-          <p className="text-slate-500 mt-1">Discover what other developers are sharing.</p>
-        </div>
-        <Button variant="primary" onClick={() => setIsModalOpen(true)}>
-          <svg className="w-5 h-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-          </svg>
-          Create Post
-        </Button>
-      </div>
+  const stats = [
+    { label: "Posts", value: posts.length || 0 },
+    { label: "Likes", value: posts.reduce((acc, post) => acc + (post.likes?.length || 0), 0) },
+    { label: "Comments", value: posts.reduce((acc, post) => acc + (post.comments?.length || 0), 0) },
+  ];
 
-      <Modal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        title="Create New Post"
-      >
-        <form onSubmit={handleCreatePost} className="flex flex-col gap-5">
-          <InputField
-            label="Title"
-            type="text"
-            id="title"
-            name="title"
-            value={postForm.title}
-            onChange={handlePostFormChange}
-            placeholder="Enter post title"
-            required
-          />
+  return (
+    <div className="space-y-6">
+      <Card className="overflow-hidden border-brand-300/20 bg-gradient-to-br from-zinc-950 to-brand-900/20 p-0">
+        <div className="grid gap-6 p-6 lg:grid-cols-[1fr_360px]">
+          <div className="space-y-4">
+            <span className="app-chip">Creator studio</span>
+            <h1 className="section-title">Manage posts and track engagement</h1>
+            <p className="section-copy max-w-2xl">Create quickly, monitor activity, and iterate on what resonates with your audience.</p>
+            <div className="flex flex-wrap gap-2">
+              <Button variant="primary" onClick={() => setIsModalOpen(true)}>Create post</Button>
+              <Button variant="secondary" onClick={fetchPosts}>Refresh</Button>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-3 gap-3">
+            {stats.map((item) => (
+              <div key={item.label} className="rounded-2xl border border-white/10 bg-black/60 p-4 text-center">
+                <p className="text-2xl font-bold text-zinc-100">{item.value}</p>
+                <p className="mt-1 text-xs uppercase tracking-[0.2em] text-zinc-500">{item.label}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </Card>
+
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Create New Post">
+        <form onSubmit={handleCreatePost} className="space-y-4">
+          <InputField label="Title" name="title" value={postForm.title} onChange={handlePostFormChange} placeholder="Enter a clear title" required />
 
           <div>
-            <label className="text-sm font-medium text-slate-700 mb-1.5 block">Category</label>
+            <label className="mb-1.5 block text-sm font-medium text-zinc-300">Category</label>
             <select
               name="category"
               value={postForm.category}
               onChange={handlePostFormChange}
-              className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all appearance-none"
+              className="w-full rounded-2xl border border-white/10 bg-black px-4 py-3 text-zinc-100 focus:border-brand-300 focus:outline-none"
             >
-              {categories.map(c => <option key={c} value={c}>{c}</option>)}
+              {categories.map((category) => (
+                <option key={category} value={category}>{category}</option>
+              ))}
             </select>
           </div>
 
-          <InputField
-            label="Content"
-            type="textarea"
-            id="content"
-            name="content"
-            value={postForm.content}
-            onChange={handlePostFormChange}
-            placeholder="Write your post content..."
-            rows="6"
-            required
-          />
+          <InputField label="Content" type="textarea" name="content" value={postForm.content} onChange={handlePostFormChange} placeholder="Write your content" rows="6" required />
+          <InputField label="Image URL" type="url" name="image" value={postForm.image} onChange={handlePostFormChange} placeholder="https://example.com/image.jpg" />
 
-          <div className="flex items-center gap-3 p-3 bg-brand-50 border border-brand-100 rounded-xl">
+          <label className="flex items-center gap-2 rounded-2xl border border-white/10 bg-black p-3">
             <input
-              id="isPremiumModal"
-              name="isPremium"
               type="checkbox"
+              name="isPremium"
               checked={postForm.isPremium}
               onChange={handlePostFormChange}
-              className="w-4 h-4 text-brand-600 border-slate-300 rounded focus:ring-brand-500"
+              className="h-4 w-4 rounded border-white/20 bg-black text-brand-400"
             />
-            <label htmlFor="isPremiumModal" className="text-sm font-semibold text-brand-900 cursor-pointer">
-              Mark as Premium Content
-            </label>
-          </div>
+            <span className="text-sm text-zinc-300">Mark as premium content</span>
+          </label>
 
-          <InputField
-            label="Image URL"
-            type="url"
-            id="image"
-            name="image"
-            value={postForm.image}
-            onChange={handlePostFormChange}
-            placeholder="https://example.com/image.jpg"
-          />
-
-          <div className="flex justify-end gap-3 mt-4 pt-4 border-t border-slate-100">
+          <div className="flex justify-end gap-2 pt-2">
             <Button type="button" variant="ghost" onClick={() => setIsModalOpen(false)}>Cancel</Button>
-            <Button type="submit" variant="primary">Publish Post</Button>
+            <Button type="submit" variant="primary">Publish</Button>
           </div>
         </form>
       </Modal>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
         {loading ? (
-          <p className="col-span-full text-center py-10 text-slate-500">Loading feed...</p>
+          <p className="col-span-full py-10 text-center text-zinc-500">Loading posts...</p>
         ) : posts.length === 0 ? (
-          <p className="col-span-full text-center py-10 text-slate-500">No posts available.</p>
+          <p className="col-span-full py-10 text-center text-zinc-500">No posts available.</p>
         ) : (
           posts.map((post) => (
-            <Card key={post._id} hoverable className="flex flex-col h-full">
-              <div className="flex items-center mb-4">
-                <Link to={`/user/${post.author?.username || 'demo_user'}`} className="flex items-center gap-3 group">
+            <Card key={post._id} hoverable className="space-y-4">
+              <div className="flex items-center justify-between gap-3">
+                <Link to={`/user/${post.author?.username || "demo_user"}`} className="flex items-center gap-3">
                   <Avatar src={post.author?.profilePic} fallback={post.author?.name || "U"} size="md" />
                   <div>
-                    <span className="font-semibold text-slate-900 group-hover:text-brand-600 transition-colors block">{post.author?.name || "User"}</span>
-                    <span className="text-xs text-slate-500">{new Date().toLocaleDateString()}</span>
+                    <p className="text-sm font-semibold text-zinc-100">{post.author?.name || "User"}</p>
+                    <p className="text-xs text-zinc-500">{new Date().toLocaleDateString()}</p>
                   </div>
                 </Link>
+                <span className="rounded-full border border-white/10 bg-black px-3 py-1 text-xs text-zinc-400">{post.category || "Article"}</span>
               </div>
 
               {post.image && (
-                <Link to={`/post/${post._id}`} className="block w-full h-48 -mx-6 mb-4 overflow-hidden">
-                  <img src={post.image} alt="post" className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
+                <Link to={`/post/${post._id}`} className="block overflow-hidden rounded-2xl border border-white/10">
+                  <img src={post.image} alt="post" className="h-52 w-full object-cover" />
                 </Link>
               )}
 
-              <div className="flex-1">
-                <span className="text-xs font-bold text-brand-500 uppercase tracking-wider mb-2 block">
-                  {post.category || 'Article'}
-                </span>
-                <h3 className="text-xl font-display font-bold mb-2">
-                  <Link to={`/post/${post._id}`} className="text-slate-900 hover:text-brand-600 transition-colors">{post.title}</Link>
+              <div>
+                <h3 className="font-display text-3xl text-zinc-100">
+                  <Link to={`/post/${post._id}`} className="hover:text-brand-200">{post.title}</Link>
                 </h3>
-                <p className="text-slate-600 text-sm line-clamp-3 mb-4">{post.content}</p>
-                <Link to={`/post/${post._id}`} className="text-brand-600 text-sm font-semibold hover:text-brand-700 transition-colors inline-flex items-center gap-1 group">
-                  Read article
-                  <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
-                </Link>
+                <p className="mt-2 line-clamp-3 text-sm text-zinc-400">{post.content}</p>
               </div>
 
-              <div className="flex items-center gap-4 mt-6 pt-4 border-t border-slate-100 text-slate-500 text-sm font-medium">
-                <div onClick={() => handleLike(post._id)} className={`flex items-center gap-1.5 cursor-pointer transition-colors ${post.likes?.includes(userId) ? 'text-red-500' : 'hover:text-red-500'}`}>
-                  <svg className="w-5 h-5" fill={post.likes?.includes(userId) ? "currentColor" : "none"} viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
-                  <span>{post.likes?.length || 0}</span>
-                </div>
-                <div className="flex items-center gap-1.5 hover:text-brand-600 cursor-pointer transition-colors">
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
-                  <span>{post.comments?.length || 0}</span>
-                </div>
-                <div className="flex items-center gap-1.5 ml-auto text-slate-400">
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
-                  <span>{post.views?.length || 0}</span>
-                </div>
+              <div className="flex items-center gap-3 border-t border-white/10 pt-3 text-xs text-zinc-400">
+                <button onClick={() => handleLike(post._id)} className="rounded-xl border border-white/10 bg-black px-3 py-1 hover:border-red-400/40 hover:text-red-200">
+                  {post.likes?.length || 0} likes
+                </button>
+                <span>{post.comments?.length || 0} comments</span>
+                <span className="ml-auto">{post.views?.length || 0} views</span>
               </div>
             </Card>
           ))

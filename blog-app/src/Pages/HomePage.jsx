@@ -1,204 +1,192 @@
-import React, { useEffect, useState } from "react";
-import { getAllPosts } from "../services/postService";
+﻿import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import Card from "../components/UI/Card";
 import Avatar from "../components/UI/Avatar";
+import Card from "../components/UI/Card";
 import Skeleton from "../components/UI/Skeleton";
+import { getAllPosts } from "../services/postService";
+
+function extractPostPreview(content = "") {
+  const fenceMatch = content.match(/```([\s\S]*?)```/);
+  if (fenceMatch) {
+    return {
+      type: "code",
+      value: fenceMatch[1].trim(),
+      text: content.replace(fenceMatch[0], "").trim(),
+    };
+  }
+
+  return {
+    type: "text",
+    value: content.trim(),
+    text: content.trim(),
+  };
+}
+
+function FeedCard({ post }) {
+  const preview = extractPostPreview(post.content || "");
+  const authorId = post.author?.id || post.author?._id || "demo";
+  const mediaUrl = post.image || post.mediaUrl || post.videoUrl || post.audioUrl || post.gifUrl;
+
+  return (
+    <Card className="overflow-hidden p-0 hoverable border-white/10">
+      <div className="space-y-5 p-5 sm:p-6">
+        <div className="flex items-center justify-between gap-3">
+          <Link to={`/user/${authorId}`} className="flex items-center gap-3">
+            <Avatar src={post.author?.profilePic} fallback={post.author?.name} size="md" />
+            <div>
+              <p className="text-sm font-semibold text-zinc-100">{post.author?.name || "Community member"}</p>
+              <p className="text-xs text-zinc-500">{new Date(post.createdAt).toLocaleDateString()}</p>
+            </div>
+          </Link>
+          <span className="rounded-full border border-white/10 bg-zinc-900 px-3 py-1 text-xs text-zinc-400">
+            {post.category || "Article"}
+          </span>
+        </div>
+
+        <div className="space-y-2">
+          <h2 className="font-display text-3xl font-bold text-zinc-100 sm:text-4xl">
+            <Link to={`/post/${post._id}`} className="hover:text-brand-200">{post.title}</Link>
+          </h2>
+          <p className="text-sm leading-7 text-zinc-400">{preview.text || "No preview available."}</p>
+        </div>
+
+        {mediaUrl && (
+          <div className="overflow-hidden rounded-2xl border border-white/10">
+            <img src={mediaUrl} alt={post.title} className="h-72 w-full object-cover" />
+          </div>
+        )}
+
+        {preview.type === "code" && (
+          <div className="overflow-hidden rounded-2xl border border-white/10 bg-black">
+            <div className="border-b border-white/10 px-4 py-2 text-xs uppercase tracking-[0.2em] text-zinc-500">Code snippet</div>
+            <pre className="overflow-x-auto p-4 font-mono text-xs leading-6 text-zinc-200"><code>{preview.value}</code></pre>
+          </div>
+        )}
+
+        <div className="flex flex-wrap items-center gap-2 border-t border-white/10 pt-4">
+          <span className="rounded-xl border border-white/10 bg-black px-3 py-1.5 text-xs text-zinc-400">{post.likes?.length || 0} likes</span>
+          <span className="rounded-xl border border-white/10 bg-black px-3 py-1.5 text-xs text-zinc-400">{post.comments?.length || 0} comments</span>
+          <span className="rounded-xl border border-white/10 bg-black px-3 py-1.5 text-xs text-zinc-400">{post.views?.length || 0} views</span>
+          <Link to={`/post/${post._id}`} className="ml-auto rounded-xl bg-brand-400 px-3 py-1.5 text-xs font-semibold text-black hover:bg-brand-300">
+            Read
+          </Link>
+        </div>
+      </div>
+    </Card>
+  );
+}
 
 export default function HomePage() {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [activeCategory, setActiveCategory] = useState("All");
 
   const categories = ["All", "Technology", "Design", "Programming", "Lifestyle", "Business"];
-  const [activeCategory, setActiveCategory] = useState("All");
 
   useEffect(() => {
     const fetchPosts = async () => {
       try {
         const data = await getAllPosts();
         setPosts(data.posts || []);
-      } catch (err) {
-        // Fallback data
+      } catch {
         setPosts([
-          { _id: '1', title: 'The Future of Frontend Architecture', content: 'Exploring the new wave of React server components and how they will shape the web...', image: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=800&q=80', author: { id: 'user1', name: 'Alex Johnson', profilePic: 'https://i.pravatar.cc/150?u=user1' }, createdAt: new Date().toISOString(), category: 'Programming' },
-          { _id: '2', title: 'Minimalist Design Systems', content: 'Why less is more when it comes to designing enterprise applications...', image: 'https://images.unsplash.com/photo-1561070791-2526d30994b5?auto=format&fit=crop&w=800&q=80', author: { id: 'user2', name: 'Sarah Lee', profilePic: 'https://i.pravatar.cc/150?u=user2' }, createdAt: new Date().toISOString(), category: 'Design' },
-          { _id: '3', title: 'Building Scalable APIs', content: 'Best practices for REST and GraphQL in modern startups...', image: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=800&q=80', author: { id: 'user3', name: 'Mike Chen' }, createdAt: new Date().toISOString(), category: 'Technology' },
-          { _id: '4', title: 'Remote Work Productivity', content: 'How to maintain focus and balance while working from anywhere...', image: 'https://images.unsplash.com/photo-1593642632823-8f785ba67e45?auto=format&fit=crop&w=800&q=80', author: { id: 'user4', name: 'Emma Watson' }, createdAt: new Date().toISOString(), category: 'Lifestyle' }
+          {
+            _id: "1",
+            title: "Inside a Fast Frontend Workflow",
+            content: "How teams reduce context switching with modular tooling and reliable UI primitives.",
+            image: "https://images.unsplash.com/photo-1461749280684-dccba630e2f6?auto=format&fit=crop&w=1200&q=80",
+            author: { id: "user1", name: "Nadia", profilePic: "https://i.pravatar.cc/150?u=user1" },
+            createdAt: new Date().toISOString(),
+            category: "Programming",
+            comments: [1, 2],
+            views: Array(81).fill(0),
+            likes: [1, 2, 3],
+          },
+          {
+            _id: "2",
+            title: "Designing Minimal Interfaces that Still Feel Premium",
+            content: "This article explores spacing, rhythm, and contrast choices in all-black products.",
+            image: "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1200&q=80",
+            author: { id: "user2", name: "Arjun", profilePic: "https://i.pravatar.cc/150?u=user2" },
+            createdAt: new Date().toISOString(),
+            category: "Design",
+            comments: [1],
+            views: Array(52).fill(0),
+            likes: [1],
+          },
         ]);
       } finally {
         setLoading(false);
       }
     };
+
     fetchPosts();
   }, []);
 
-  const featuredPost = posts[0];
-  const recentPosts = posts.slice(1);
-  const trendingPosts = [...posts].reverse().slice(0, 3); // mock trending
+  const visiblePosts = useMemo(() => {
+    if (activeCategory === "All") return posts;
+    return posts.filter((post) => (post.category || "").toLowerCase() === activeCategory.toLowerCase());
+  }, [activeCategory, posts]);
 
   return (
-    <div className="flex flex-col lg:flex-row gap-8">
-      
-      {/* Main Content Area */}
-      <div className="flex-1 flex flex-col gap-10">
-        
-        {/* Categories Filter */}
-        <div className="flex flex-wrap gap-2">
-          {categories.map(cat => (
-            <button 
-              key={cat}
-              onClick={() => setActiveCategory(cat)}
-              className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
-                activeCategory === cat 
-                  ? "bg-slate-800 text-white" 
-                  : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50"
-              }`}
-            >
-              {cat}
-            </button>
+    <div className="space-y-6">
+      <Card className="overflow-hidden border-brand-300/20 bg-gradient-to-br from-zinc-950 via-zinc-950 to-brand-900/20 p-0">
+        <div className="grid gap-6 p-6 sm:p-8 lg:grid-cols-[1.2fr_0.8fr]">
+          <div className="space-y-4">
+            <span className="app-chip">Signal Feed</span>
+            <h1 className="section-title">Build. Share. Iterate.</h1>
+            <p className="section-copy max-w-2xl">
+              Discover high-signal posts from developers and designers. Clean layout, fast reading, and practical ideas.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {categories.map((category) => (
+                <button
+                  key={category}
+                  onClick={() => setActiveCategory(category)}
+                  className={`rounded-xl border px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.12em] ${
+                    activeCategory === category
+                      ? "border-brand-300/50 bg-brand-300/20 text-brand-100"
+                      : "border-white/10 bg-black text-zinc-400 hover:border-white/20 hover:text-zinc-200"
+                  }`}
+                >
+                  {category}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            {[{ label: "Posts", value: visiblePosts.length }, { label: "Total", value: posts.length }, { label: "Mode", value: "Live" }, { label: "Theme", value: "Noir" }].map((item) => (
+              <div key={item.label} className="rounded-2xl border border-white/10 bg-black/60 p-4">
+                <p className="text-xs uppercase tracking-[0.16em] text-zinc-500">{item.label}</p>
+                <p className="mt-2 text-xl font-bold text-zinc-100">{item.value}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </Card>
+
+      {loading ? (
+        <div className="space-y-4">
+          {Array.from({ length: 3 }).map((_, index) => (
+            <Skeleton key={index} type="card" className="h-64" />
           ))}
         </div>
-
-        {/* Featured Post */}
-        <section>
-          <h2 className="text-2xl font-semibold mb-6 flex items-center gap-2">
-            <span className="w-1.5 h-6 bg-brand-500 rounded-full inline-block"></span>
-            Featured Article
-          </h2>
-          {loading ? (
-            <Skeleton type="card" className="h-[400px]" />
-          ) : featuredPost ? (
-            <Link to={`/post/${featuredPost._id}`} className="group block">
-              <div className="relative rounded-2xl overflow-hidden h-[400px]">
-                {featuredPost.image && (
-                  <img src={featuredPost.image} alt={featuredPost.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                )}
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-900/90 via-slate-900/40 to-transparent"></div>
-                <div className="absolute bottom-0 left-0 p-8 text-white w-full max-w-3xl">
-                  <span className="px-3 py-1 bg-brand-500 text-xs font-bold uppercase tracking-wider rounded-full mb-4 inline-block">
-                    {featuredPost.category || 'Featured'}
-                  </span>
-                  <h3 className="text-3xl sm:text-4xl font-display font-bold mb-4 leading-tight group-hover:text-brand-300 transition-colors">
-                    {featuredPost.title}
-                  </h3>
-                  <div className="flex items-center gap-3">
-                    <Avatar src={featuredPost.author?.profilePic} fallback={featuredPost.author?.name} size="sm" />
-                    <div>
-                      <p className="text-sm font-medium">{featuredPost.author?.name}</p>
-                      <p className="text-xs text-slate-300">
-                        {new Date(featuredPost.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </Link>
-          ) : null}
-        </section>
-
-        {/* Recent Posts Grid */}
-        <section>
-          <h2 className="text-2xl font-semibold mb-6 flex items-center gap-2">
-            <span className="w-1.5 h-6 bg-slate-800 rounded-full inline-block"></span>
-            Recent Posts
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {loading ? (
-              Array.from({length: 4}).map((_, i) => <Skeleton key={i} type="card" />)
-            ) : (
-              recentPosts.map(post => (
-                <Card key={post._id} hoverable className="flex flex-col h-full p-0 overflow-hidden">
-                  {post.image && (
-                    <div className="h-48 overflow-hidden">
-                      <img src={post.image} alt={post.title} className="w-full h-full object-cover" />
-                    </div>
-                  )}
-                  <div className="p-6 flex flex-col flex-1">
-                    <span className="text-xs font-bold text-brand-500 uppercase tracking-wider mb-2">
-                      {post.category || 'Article'}
-                    </span>
-                    <h3 className="text-xl font-display font-bold mb-3 text-slate-900 line-clamp-2">
-                      <Link to={`/post/${post._id}`} className="hover:text-brand-600 transition-colors">
-                        {post.title}
-                      </Link>
-                    </h3>
-                    <p className="text-slate-600 mb-6 line-clamp-3 flex-1 text-sm">
-                      {post.content}
-                    </p>
-                    
-                    <div className="flex items-center gap-3 mt-auto pt-4 border-t border-slate-100">
-                      <Link to={`/user/${post.author?.id || 'demo'}`}>
-                        <Avatar src={post.author?.profilePic} fallback={post.author?.name} size="sm" />
-                      </Link>
-                      <div>
-                        <p className="text-sm font-medium text-slate-900 hover:text-brand-600">
-                          <Link to={`/user/${post.author?.id || 'demo'}`}>{post.author?.name}</Link>
-                        </p>
-                        <p className="text-xs text-slate-500">
-                          {new Date(post.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </Card>
-              ))
-            )}
-          </div>
-        </section>
-
-      </div>
-
-      {/* Sidebar (Trending) */}
-      <aside className="w-full lg:w-80 flex flex-col gap-8">
-        <div className="bg-white rounded-2xl p-6 border border-slate-100 sticky top-24">
-          <h2 className="text-lg font-semibold mb-6 flex items-center gap-2">
-            Trending Now
-            <svg className="w-5 h-5 text-orange-500" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M12.395 2.553a1 1 0 00-1.45-.385c-.345.23-.614.558-.822.88-.214.33-.403.713-.57 1.116-.334.804-.614 1.768-.84 2.734a31.365 31.365 0 00-.613 3.58 2.64 2.64 0 01-.945-1.067c-.328-.68-.398-1.534-.398-2.654A1 1 0 005.05 6.05 6.981 6.981 0 003 11a7 7 0 1011.95-4.95c-.592-.591-.98-.985-1.348-1.467-.363-.476-.724-1.063-1.207-2.03zM12.12 15.12A3 3 0 017 13s.879.5 2.5.5c0-1 .5-4 1.25-4.5.5 1 .786 1.293 1.371 1.879A2.99 2.99 0 0113 13a2.99 2.99 0 01-.879 2.121z" clipRule="evenodd" />
-            </svg>
-          </h2>
-          
-          <div className="flex flex-col gap-6">
-            {loading ? (
-              Array.from({length: 3}).map((_, i) => (
-                <div key={i} className="flex gap-4">
-                  <Skeleton type="text" className="w-8 h-8 rounded-lg flex-shrink-0" />
-                  <div className="w-full">
-                    <Skeleton type="text" className="mb-2" />
-                    <Skeleton type="text" className="w-1/2" />
-                  </div>
-                </div>
-              ))
-            ) : (
-              trendingPosts.map((post, idx) => (
-                <Link key={post._id} to={`/post/${post._id}`} className="group flex gap-4 items-start">
-                  <span className="text-3xl font-display font-bold text-slate-200 group-hover:text-brand-200 transition-colors leading-none">
-                    0{idx + 1}
-                  </span>
-                  <div>
-                    <h4 className="font-semibold text-slate-800 group-hover:text-brand-600 transition-colors line-clamp-2 leading-snug mb-1">
-                      {post.title}
-                    </h4>
-                    <p className="text-xs text-slate-500">
-                      {new Date(post.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
-                    </p>
-                  </div>
-                </Link>
-              ))
-            )}
-          </div>
-        </div>
-
-        <div className="bg-brand-50 rounded-2xl p-6 border border-brand-100 text-center">
-          <h3 className="font-display font-bold text-lg text-slate-900 mb-2">Subscribe to Newsletter</h3>
-          <p className="text-sm text-slate-600 mb-4">Get the latest posts delivered right to your inbox.</p>
-          <input type="email" placeholder="Your email address" className="w-full px-4 py-2 rounded-lg border border-slate-200 mb-3 text-sm focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500" />
-          <button className="w-full py-2 bg-slate-900 text-white rounded-lg text-sm font-medium hover:bg-slate-800 transition-colors">
-            Subscribe
+      ) : visiblePosts.length === 0 ? (
+        <Card className="py-16 text-center">
+          <h2 className="font-display text-4xl text-zinc-100">No posts in this lane yet</h2>
+          <p className="mt-2 text-zinc-500">Switch category or publish a fresh post to populate this stream.</p>
+          <button onClick={() => setActiveCategory("All")} className="mt-5 rounded-xl bg-brand-400 px-4 py-2 text-sm font-semibold text-black hover:bg-brand-300">
+            Show all
           </button>
+        </Card>
+      ) : (
+        <div className="space-y-5">
+          {visiblePosts.map((post) => (
+            <FeedCard key={post._id} post={post} />
+          ))}
         </div>
-      </aside>
-
+      )}
     </div>
   );
 }

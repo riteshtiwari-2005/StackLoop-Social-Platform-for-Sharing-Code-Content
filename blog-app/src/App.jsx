@@ -1,135 +1,312 @@
-import { BrowserRouter as Router, Routes, Route, Link, NavLink, useNavigate } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
-import { logout } from "./features/auth/authSlice";
+﻿import { useDispatch, useSelector } from "react-redux";
+import { BrowserRouter as Router, Link, NavLink, Route, Routes, useLocation } from "react-router-dom";
 import ProtectedRoute from "./components/ProtectedRoute";
-import HomePage from "./Pages/HomePage";
-import DashboardPage from "./Pages/DashboardPage";
+import { logout } from "./features/auth/authSlice";
 import CreatePostPage from "./Pages/CreatePostPage";
-import ProfilePage from "./Pages/ProfilePage";
-import OtherUserProfilePage from "./Pages/OtherUserProfilePage";
-import SinglePostPage from "./Pages/SinglePostPage";
+import DashboardPage from "./Pages/DashboardPage";
+import HomePage from "./Pages/HomePage";
 import LoginPage from "./Pages/LoginPage";
-import RegisterPage from "./Pages/RegisterPage";
+import OtherUserProfilePage from "./Pages/OtherUserProfilePage";
 import PremiumPage from "./Pages/PremiumPage";
-import axios from "./services/api";
+import ProfilePage from "./Pages/ProfilePage";
+import RegisterPage from "./Pages/RegisterPage";
+import SinglePostPage from "./Pages/SinglePostPage";
 import { buyrazorpay } from "./services/paymentService";
 
-function Navbar() {
-  const dispatch = useDispatch();
-  const token = useSelector((state) => state.auth.token);
-  const user = useSelector((state) => state.auth.user);
-  
-  const activeCls = ({ isActive }) =>
-    isActive
-      ? "text-brand-600 font-semibold"
-      : "text-slate-600 hover:text-brand-600 transition-colors";
+const TAGS = ["Web", "Devtools", "Product", "Design", "API", "UX", "AI", "Frontend", "Backend"];
+const CREW = ["Maya", "Rohan", "Vipul", "Nia", "James"];
+
+function AppIcon({ type, className = "h-4 w-4" }) {
+  if (type === "home") {
+    return (
+      <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+        <path d="M3 10.5L12 3l9 7.5" />
+        <path d="M6 10v10h12V10" />
+      </svg>
+    );
+  }
+
+  if (type === "spark") {
+    return (
+      <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+        <path d="M12 3l2.4 5.6L20 11l-5.6 2.4L12 19l-2.4-5.6L4 11l5.6-2.4L12 3z" />
+      </svg>
+    );
+  }
+
+  if (type === "grid") {
+    return (
+      <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+        <rect x="3" y="3" width="7" height="7" />
+        <rect x="14" y="3" width="7" height="7" />
+        <rect x="3" y="14" width="7" height="7" />
+        <rect x="14" y="14" width="7" height="7" />
+      </svg>
+    );
+  }
+
+  if (type === "search") {
+    return (
+      <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+        <circle cx="11" cy="11" r="7" />
+        <path d="M20 20l-4-4" />
+      </svg>
+    );
+  }
+
+  if (type === "plus") {
+    return (
+      <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+        <path d="M12 5v14" />
+        <path d="M5 12h14" />
+      </svg>
+    );
+  }
 
   return (
-    <nav className="sticky top-0 z-40 w-full bg-white/80 backdrop-blur-md border-b border-slate-100 shadow-sm">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <path d="M12 4v16" />
+      <path d="M4 12h16" />
+    </svg>
+  );
+}
 
-          {/* Logo */}
-          <Link to="/" className="flex items-center gap-2.5 group shrink-0">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center text-white font-display font-bold text-lg shadow-sm group-hover:shadow-brand-500/30 transition-all">
-              B
-            </div>
-            <span className="font-display font-bold text-xl text-slate-900 group-hover:text-brand-600 transition-colors hidden sm:block">
-              BlogSpace
-            </span>
-          </Link>
+function Brand() {
+  return (
+    <Link to="/" className="inline-flex items-center gap-2">
+      <span className="signal-dot" />
+      <span className="font-display text-2xl font-bold text-zinc-100">StackLoop</span>
+      <span className="hidden rounded-full border border-white/10 px-2 py-0.5 text-xs text-zinc-500 sm:inline">studio</span>
+    </Link>
+  );
+}
 
-          {/* Search Bar */}
-          <div className="hidden md:flex flex-1 max-w-sm mx-6">
-            <div className="relative w-full">
-              <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                <svg className="h-4 w-4 text-slate-400" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" />
-                </svg>
-              </div>
-              <input
-                type="text"
-                className="block w-full pl-10 pr-3 py-2 border border-slate-200 rounded-full bg-slate-50 text-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-400 focus:bg-white transition-all"
-                placeholder="Search articles..."
-              />
+function MainRoutes() {
+  return (
+    <Routes>
+      <Route path="/" element={<HomePage />} />
+      <Route path="/post/:id" element={<SinglePostPage />} />
+      <Route path="/user/:id" element={<OtherUserProfilePage />} />
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/register" element={<RegisterPage />} />
+      <Route path="/premium" element={<PremiumPage />} />
+      <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
+      <Route path="/create-post" element={<ProtectedRoute><CreatePostPage /></ProtectedRoute>} />
+      <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+    </Routes>
+  );
+}
+
+function TopHeader() {
+  const dispatch = useDispatch();
+  const { token, user } = useSelector((state) => state.auth);
+
+  const navItems = [
+    { to: "/", label: "Feed", icon: "home", end: true },
+    { to: "/dashboard", label: "Studio", icon: "grid" },
+    { to: "/premium", label: "Pro", icon: "spark" },
+  ];
+
+  return (
+    <header className="sticky top-0 z-50 border-b border-white/10 bg-black/80 backdrop-blur-md">
+      <div className="layout-container">
+        <div className="flex h-16 items-center justify-between gap-4">
+          <Brand />
+
+          <nav className="hidden items-center gap-1 rounded-2xl border border-white/10 bg-zinc-950/80 p-1 md:flex">
+            {navItems.map((item) => (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                end={item.end}
+                className={({ isActive }) =>
+                  `inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium transition-colors ${
+                    isActive ? "bg-brand-400 text-black" : "text-zinc-400 hover:bg-zinc-900 hover:text-zinc-100"
+                  }`
+                }
+              >
+                <AppIcon type={item.icon} />
+                {item.label}
+              </NavLink>
+            ))}
+          </nav>
+
+          <div className="hidden min-w-[280px] flex-1 lg:flex lg:justify-center">
+            <div className="relative w-full max-w-md">
+              <AppIcon type="search" className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" />
+              <input className="command-input pl-10" placeholder="Search people, posts, snippets" />
             </div>
           </div>
 
-          {/* Nav Links */}
-          <div className="flex items-center gap-1 sm:gap-2">
-            <NavLink to="/" end className={({isActive}) => `hidden md:block px-3 py-2 rounded-lg text-sm font-medium transition-colors ${isActive ? 'text-brand-600 bg-brand-50' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'}`}>Home</NavLink>
-            <NavLink to="/dashboard" className={({isActive}) => `hidden md:block px-3 py-2 rounded-lg text-sm font-medium transition-colors ${isActive ? 'text-brand-600 bg-brand-50' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'}`}>Feed</NavLink>
-            <NavLink to="/premium" className={({isActive}) => `hidden md:block px-3 py-2 rounded-lg text-sm font-medium transition-colors ${isActive ? 'text-brand-600 bg-brand-50' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'}`}>Premium</NavLink>
-
+          <div className="flex items-center gap-2">
             {token ? (
               <>
-                <NavLink to="/create-post" className="flex items-center gap-1.5 px-4 py-2 bg-slate-900 text-white text-sm font-medium rounded-full hover:bg-slate-700 transition-colors">
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
-                  <span className="hidden sm:block">Write</span>
-                </NavLink>
-
-                <NavLink className="flex items-center gap-1.5 px-4 py-2 bg-red-500 text-white text-sm font-medium rounded-full hover:bg-red-600 transition-colors">
-                  <span className="hidden sm:block"  onClick={buyrazorpay}>Buy Subscription</span>
-                </NavLink>
-                <NavLink to="/profile" className={({isActive}) => `w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm transition-all ${isActive ? 'bg-brand-100 text-brand-700 ring-2 ring-brand-400' : 'bg-slate-100 text-slate-600 hover:bg-brand-50 hover:text-brand-600'}`}>
-                  {(user?.username || user?.name || 'U').slice(0, 2).toUpperCase()}
+                <Link to="/create-post" className="hidden rounded-xl border border-white/10 bg-zinc-950 px-3 py-2 text-sm font-semibold text-zinc-200 hover:border-white/20 sm:inline-flex">
+                  <AppIcon type="plus" className="mr-1 h-4 w-4" />
+                  New
+                </Link>
+                <button
+                  onClick={buyrazorpay}
+                  className="hidden rounded-xl border border-brand-300/25 bg-brand-300/10 px-3 py-2 text-sm font-semibold text-brand-200 hover:bg-brand-300/20 lg:inline-flex"
+                >
+                  Upgrade
+                </button>
+                <NavLink
+                  to="/profile"
+                  className="rounded-xl border border-white/10 bg-zinc-900 px-3 py-2 text-sm font-bold uppercase tracking-wide text-zinc-100 hover:border-white/20"
+                >
+                  {(user?.username || user?.name || "U").slice(0, 2)}
                 </NavLink>
                 <button
-                  onClick={() => { dispatch(logout()); localStorage.clear(); }}
-                  className="hidden md:flex items-center gap-1 px-3 py-2 text-sm text-slate-500 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                  onClick={() => {
+                    dispatch(logout());
+                    localStorage.clear();
+                  }}
+                  className="rounded-xl border border-white/10 px-3 py-2 text-sm text-zinc-400 hover:border-red-400/30 hover:text-red-200"
                 >
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
                   Logout
                 </button>
               </>
             ) : (
               <>
-                <NavLink to="/login" className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-brand-600 hover:bg-brand-50 rounded-full transition-colors">
-                  Sign In
+                <NavLink to="/login" className="rounded-xl border border-white/10 px-3 py-2 text-sm font-semibold text-zinc-300 hover:border-white/20 hover:text-zinc-100">
+                  Sign in
                 </NavLink>
-                <NavLink to="/register" className="px-4 py-2 bg-brand-500 text-white text-sm font-medium rounded-full hover:bg-brand-600 transition-colors shadow-sm">
-                  Sign Up
+                <NavLink to="/register" className="rounded-xl bg-brand-400 px-3 py-2 text-sm font-semibold text-black hover:bg-brand-300">
+                  Join
                 </NavLink>
               </>
             )}
           </div>
         </div>
       </div>
-    </nav>
+    </header>
+  );
+}
+
+function LeftRail() {
+  const links = [
+    { to: "/", label: "Home", note: "Latest activity" },
+    { to: "/dashboard", label: "Studio", note: "Your creator panel" },
+    { to: "/premium", label: "Premium", note: "Members content" },
+  ];
+
+  return (
+    <aside className="hidden xl:block">
+      <div className="sticky top-24 space-y-4">
+        <div className="surface-card p-4">
+          <p className="mb-3 text-xs uppercase tracking-[0.22em] text-zinc-500">Navigation</p>
+          <div className="space-y-2">
+            {links.map((link) => (
+              <NavLink
+                key={link.to}
+                to={link.to}
+                end={link.to === "/"}
+                className={({ isActive }) =>
+                  `block rounded-2xl border px-3 py-3 transition-colors ${
+                    isActive
+                      ? "border-brand-300/40 bg-brand-300/10"
+                      : "border-white/10 bg-black hover:border-white/20"
+                  }`
+                }
+              >
+                <p className="text-sm font-semibold text-zinc-100">{link.label}</p>
+                <p className="text-xs text-zinc-500">{link.note}</p>
+              </NavLink>
+            ))}
+          </div>
+        </div>
+
+        <div className="surface-card p-4">
+          <p className="mb-3 text-xs uppercase tracking-[0.22em] text-zinc-500">Command Hints</p>
+          <ul className="space-y-2 text-sm text-zinc-400">
+            <li>Press `/` to focus search</li>
+            <li>Use filters in feed</li>
+            <li>Draft first, publish later</li>
+          </ul>
+        </div>
+      </div>
+    </aside>
+  );
+}
+
+function RightRail() {
+  return (
+    <aside className="hidden 2xl:block">
+      <div className="sticky top-24 space-y-4">
+        <div className="surface-card p-4">
+          <p className="mb-3 text-xs uppercase tracking-[0.22em] text-zinc-500">Trending Tags</p>
+          <div className="flex flex-wrap gap-2">
+            {TAGS.map((tag) => (
+              <button key={tag} className="rounded-full border border-white/10 bg-black px-3 py-1 text-xs text-zinc-400 hover:border-brand-300/35 hover:text-brand-200">
+                #{tag}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="surface-card p-4">
+          <p className="mb-3 text-xs uppercase tracking-[0.22em] text-zinc-500">New Creators</p>
+          <div className="space-y-2">
+            {CREW.map((name) => (
+              <div key={name} className="flex items-center justify-between rounded-xl border border-white/10 bg-black/90 px-3 py-2">
+                <div className="flex items-center gap-2">
+                  <span className="inline-flex h-7 w-7 items-center justify-center rounded-lg border border-white/10 bg-zinc-900 text-xs font-semibold text-zinc-200">
+                    {name[0]}
+                  </span>
+                  <span className="text-sm text-zinc-300">{name}</span>
+                </div>
+                <button
+                  type="button"
+                  className="inline-flex h-6 w-6 items-center justify-center rounded-md border border-white/10 bg-zinc-900 text-xs text-zinc-500 transition-colors hover:border-brand-300/35 hover:text-brand-200"
+                  aria-label={`Follow ${name}`}
+                >
+                  +
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </aside>
+  );
+}
+
+function AppLayout() {
+  const location = useLocation();
+  const isAuthPage = ["/login", "/register"].includes(location.pathname);
+
+  if (isAuthPage) {
+    return (
+      <div className="min-h-screen bg-black text-zinc-100">
+        <main className="relative mx-auto flex min-h-screen w-full max-w-6xl items-center justify-center px-4 py-12">
+          <div className="pointer-events-none absolute inset-0 -z-10 opacity-40 [background:radial-gradient(circle_at_15%_20%,rgba(0,209,141,0.15),transparent_25%),radial-gradient(circle_at_85%_10%,rgba(255,196,77,0.15),transparent_22%)]" />
+          <MainRoutes />
+        </main>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-black text-zinc-100">
+      <TopHeader />
+      <div className="layout-container py-6">
+        <div className="grid gap-6 xl:grid-cols-[240px_minmax(0,1fr)] 2xl:grid-cols-[240px_minmax(0,1fr)_300px]">
+          <LeftRail />
+          <main className="min-w-0">
+            <MainRoutes />
+          </main>
+          <RightRail />
+        </div>
+      </div>
+    </div>
   );
 }
 
 function App() {
   return (
     <Router>
-      <div className="min-h-screen flex flex-col bg-slate-50">
-        <Navbar />
-        <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/post/:id" element={<SinglePostPage />} />
-            <Route path="/user/:id" element={<OtherUserProfilePage />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/register" element={<RegisterPage />} />
-            <Route path="/premium" element={<PremiumPage />} />
-            {/* Protected Routes */}
-            <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
-            <Route path="/create-post" element={<ProtectedRoute><CreatePostPage /></ProtectedRoute>} />
-            <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
-          </Routes>
-        </main>
-
-        <footer className="border-t border-slate-200 bg-white mt-16">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-slate-500">
-            <span className="font-display font-semibold text-slate-800">BlogSpace</span>
-            <p>© {new Date().getFullYear()} BlogSpace. Built with React + Tailwind.</p>
-            <div className="flex gap-4">
-              <a href="#" className="hover:text-brand-600 transition-colors">Privacy</a>
-              <a href="#" className="hover:text-brand-600 transition-colors">Terms</a>
-            </div>
-          </div>
-        </footer>
-      </div>
+      <AppLayout />
     </Router>
   );
 }

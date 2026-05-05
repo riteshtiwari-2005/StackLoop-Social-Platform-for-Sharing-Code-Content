@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { getPremiumPosts, likePost } from "../services/postService";
@@ -26,10 +26,7 @@ export default function PremiumPage() {
       const data = await getPremiumPosts();
       setPosts(data.posts || []);
     } catch (err) {
-      console.error(err);
-      if (err.response?.status === 403) {
-        setAccessDenied(true);
-      }
+      if (err.response?.status === 403) setAccessDenied(true);
     } finally {
       setLoading(false);
     }
@@ -38,142 +35,85 @@ export default function PremiumPage() {
   const handleLike = async (postId) => {
     if (!userId) return;
 
-    setPosts(currentPosts => currentPosts.map(p => {
-      if (p._id === postId) {
-        const hasLiked = p.likes?.includes(userId);
-        const newLikes = hasLiked 
-          ? p.likes.filter(id => id !== userId)
-          : [...(p.likes || []), userId];
-        return { ...p, likes: newLikes };
-      }
-      return p;
-    }));
+    setPosts((current) =>
+      current.map((post) => {
+        if (post._id !== postId) return post;
+        const hasLiked = post.likes?.includes(userId);
+        return {
+          ...post,
+          likes: hasLiked ? post.likes.filter((id) => id !== userId) : [...(post.likes || []), userId],
+        };
+      })
+    );
 
     try {
       await likePost(postId);
-    } catch (err) {
-      console.error("Error liking post:", err);
+    } catch {
+      fetchPosts();
     }
   };
 
   if (accessDenied) {
     return (
-      <div className="max-w-4xl mx-auto py-20 px-4 text-center">
-        <div className="mb-10 inline-flex items-center justify-center w-24 h-24 rounded-full bg-amber-100 text-amber-600 animate-bounce">
-          <svg className="w-12 h-12" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
-          </svg>
+      <Card className="mx-auto max-w-4xl border-brand-300/20 bg-gradient-to-br from-zinc-950 to-brand-900/20 py-14 text-center">
+        <h1 className="font-display text-6xl text-zinc-100">Unlock premium</h1>
+        <p className="mx-auto mt-3 max-w-2xl text-zinc-400">Access long-form deep dives, advanced tutorials, and premium creator content.</p>
+        <div className="mt-6 flex flex-wrap justify-center gap-3">
+          <Button onClick={buyrazorpay}>Upgrade now</Button>
+          <Link to="/" className="inline-flex items-center rounded-2xl border border-white/10 px-4 py-2 text-sm text-zinc-300 hover:border-white/20">Back to feed</Link>
         </div>
-        <h1 className="text-4xl font-display font-bold text-slate-900 mb-4">Unlock Premium Content</h1>
-        <p className="text-slate-600 text-lg mb-8 max-w-lg mx-auto">
-          It looks like you've reached a premium article. Join our community of experts to get full access to deep dives, guides, and tutorials.
-        </p>
-        <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-          <Button variant="primary" size="lg" onClick={buyrazorpay} className="px-8 py-4 text-lg shadow-xl shadow-brand-500/20">
-            Get Premium Now — ₹500
-          </Button>
-          <Link to="/dashboard" className="text-slate-500 hover:text-brand-600 font-medium transition-colors">
-            Back to Free Feed
-          </Link>
-        </div>
-        
-        <div className="mt-20 grid grid-cols-1 md:grid-cols-3 gap-8 text-left">
-          {[
-            { title: "Expert Content", desc: "Articles written by industry leaders and experienced developers.", icon: "🎯" },
-            { title: "No Ads", desc: "Enjoy a completely ad-free reading experience on the entire platform.", icon: "🚫" },
-            { title: "Priority Support", desc: "Get your questions answered faster by our dedicated support team.", icon: "⚡" }
-          ].map(feature => (
-            <div key={feature.title} className="p-6 bg-white rounded-2xl border border-slate-100 shadow-sm">
-              <div className="text-3xl mb-4">{feature.icon}</div>
-              <h3 className="font-bold text-slate-900 mb-2">{feature.title}</h3>
-              <p className="text-sm text-slate-500 leading-relaxed">{feature.desc}</p>
-            </div>
-          ))}
-        </div>
-      </div>
+      </Card>
     );
   }
 
   return (
-    <div className="max-w-6xl mx-auto py-10 px-4">
-      <div className="relative mb-16 p-8 md:p-12 rounded-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-brand-900 overflow-hidden shadow-2xl">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-brand-500/10 rounded-full blur-3xl -mr-20 -mt-20 animate-pulse"></div>
-        <div className="absolute bottom-0 left-0 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl -ml-20 -mb-20"></div>
-        
-        <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
-          <div className="text-center md:text-left">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/20 text-amber-400 text-xs font-bold uppercase tracking-wider mb-4 border border-amber-500/30">
-              <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
-              Premium Library
-            </div>
-            <h1 className="text-4xl md:text-5xl font-display font-bold text-white mb-4">Exclusive Content</h1>
-            <p className="text-slate-300 text-lg max-w-xl">Deep dives, expert guides, and advanced tutorials for our premium community members.</p>
-          </div>
-          <div className="hidden lg:block">
-            <div className="w-32 h-32 rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 flex items-center justify-center rotate-12 hover:rotate-0 transition-transform duration-500 shadow-2xl">
-              <span className="text-6xl">💎</span>
-            </div>
-          </div>
+    <div className="space-y-6">
+      <Card className="overflow-hidden border-brand-300/20 bg-gradient-to-br from-zinc-950 to-brand-900/20 p-0">
+        <div className="space-y-4 p-6 sm:p-8">
+          <span className="app-chip">Premium</span>
+          <h1 className="section-title">Members-only knowledge vault</h1>
+          <p className="section-copy max-w-3xl">Curated content for creators who want deeper frameworks, faster execution, and better craft.</p>
         </div>
-      </div>
+      </Card>
 
       {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {[1, 2, 3].map(n => (
-            <div key={n} className="h-96 rounded-2xl bg-slate-100 animate-pulse"></div>
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <Card key={i} className="h-[320px] animate-pulse" />
           ))}
         </div>
       ) : posts.length === 0 ? (
-        <div className="text-center py-20 bg-white rounded-3xl border border-slate-100 shadow-sm">
-          <div className="text-6xl mb-6">🏜️</div>
-          <h3 className="text-2xl font-bold text-slate-900 mb-2">No Premium Posts Yet</h3>
-          <p className="text-slate-500">Check back soon for exclusive content.</p>
-        </div>
+        <Card className="py-16 text-center">
+          <h2 className="font-display text-4xl text-zinc-100">No premium posts yet</h2>
+          <p className="mt-2 text-zinc-500">Check back soon for new exclusive content.</p>
+        </Card>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {posts.map((post) => (
-            <Card key={post._id} hoverable className="group flex flex-col h-full overflow-hidden border-slate-100 hover:border-amber-200 transition-all duration-300">
-              <div className="relative h-56 -mx-6 -mt-6 mb-6 overflow-hidden">
-                <div className="absolute top-4 left-4 z-10">
-                  <span className="px-3 py-1 rounded-full bg-amber-500 text-white text-[10px] font-bold uppercase tracking-widest shadow-lg shadow-amber-500/40">Premium</span>
-                </div>
-                {post.image ? (
-                  <img src={post.image} alt={post.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
-                ) : (
-                  <div className="w-full h-full bg-slate-900 flex items-center justify-center">
-                    <span className="text-4xl">📚</span>
-                  </div>
-                )}
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+            <Card key={post._id} hoverable className="flex h-full flex-col overflow-hidden p-0">
+              <div className="relative h-48 overflow-hidden border-b border-white/10">
+                {post.image ? <img src={post.image} alt={post.title} className="h-full w-full object-cover" /> : <div className="flex h-full items-center justify-center bg-black text-zinc-500">No image</div>}
+                <span className="absolute left-3 top-3 rounded-full bg-brand-300 px-2 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-black">Premium</span>
               </div>
 
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-3">
-                  <span className="text-xs font-bold text-amber-600 uppercase tracking-widest">{post.category || 'EXPERT'}</span>
-                  <span className="w-1 h-1 rounded-full bg-slate-300"></span>
-                  <span className="text-xs text-slate-500">Premium Insight</span>
-                </div>
-                <h3 className="text-xl font-display font-bold text-slate-900 mb-3 group-hover:text-amber-600 transition-colors">
-                  <Link to={`/post/${post._id}`}>{post.title}</Link>
+              <div className="flex flex-1 flex-col space-y-3 p-4">
+                <p className="text-xs uppercase tracking-[0.18em] text-zinc-500">{post.category || "Expert"}</p>
+                <h3 className="line-clamp-2 font-display text-3xl text-zinc-100">
+                  <Link to={`/post/${post._id}`} className="hover:text-brand-200">{post.title}</Link>
                 </h3>
-                <p className="text-slate-600 text-sm line-clamp-3 mb-6 leading-relaxed">{post.content}</p>
-              </div>
+                <p className="line-clamp-3 text-sm text-zinc-400">{post.content}</p>
 
-              <div className="mt-auto">
-                <div className="flex items-center justify-between pt-6 border-t border-slate-50">
-                  <Link to={`/user/${post.author?.username || 'demo_user'}`} className="flex items-center gap-2">
-                    <Avatar src={post.author?.profilePic} fallback={post.author?.name || "U"} size="xs" />
-                    <span className="text-xs font-semibold text-slate-700">{post.author?.name || "Expert"}</span>
+                <div className="mt-auto flex items-center justify-between border-t border-white/10 pt-3">
+                  <Link to={`/user/${post.author?.username || "demo"}`} className="flex items-center gap-2">
+                    <Avatar src={post.author?.profilePic} fallback={post.author?.name || "E"} size="xs" />
+                    <span className="text-xs text-zinc-300">{post.author?.name || "Expert"}</span>
                   </Link>
-                  <div className="flex items-center gap-3">
-                    <button onClick={() => handleLike(post._id)} className={`flex items-center gap-1 text-xs font-medium transition-colors ${post.likes?.includes(userId) ? 'text-red-500' : 'text-slate-400 hover:text-red-500'}`}>
-                      <svg className="w-4 h-4" fill={post.likes?.includes(userId) ? "currentColor" : "none"} viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
-                      {post.likes?.length || 0}
-                    </button>
-                    <Link to={`/post/${post._id}`} className="text-amber-600">
-                       <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4 4H3" /></svg>
-                    </Link>
-                  </div>
+                  <button
+                    onClick={() => handleLike(post._id)}
+                    className={`rounded-xl border px-2 py-1 text-xs ${post.likes?.includes(userId) ? "border-red-400/40 text-red-200" : "border-white/10 text-zinc-400 hover:border-white/20 hover:text-zinc-200"}`}
+                  >
+                    {post.likes?.length || 0} likes
+                  </button>
                 </div>
               </div>
             </Card>

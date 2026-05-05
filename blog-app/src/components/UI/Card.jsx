@@ -1,12 +1,10 @@
-import React from "react";
-
-export default function Card({ children, className = "", hoverable = false }) {
-  const hoverStyles = hoverable 
-    ? "hover:-translate-y-1 hover:shadow-soft hover:border-brand-200 transition-all duration-300 cursor-pointer" 
+﻿export default function Card({ children, className = "", hoverable = false }) {
+  const hoverStyles = hoverable
+    ? "cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:border-brand-300/35 hover:bg-zinc-900"
     : "";
 
   return (
-    <div className={`bg-white rounded-2xl border border-slate-100 p-6 ${hoverStyles} ${className}`}>
+    <div className={`rounded-3xl border border-white/10 bg-zinc-950/80 p-6 shadow-soft backdrop-blur-sm ${hoverStyles} ${className}`}>
       {children}
     </div>
   );
