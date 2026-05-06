@@ -3,6 +3,7 @@ import { useSelector } from "react-redux";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import Avatar from "../components/UI/Avatar";
 import Card from "../components/UI/Card";
+import CodeSnippetWindow from "../components/UI/CodeSnippetWindow";
 import Skeleton from "../components/UI/Skeleton";
 import Toast from "../components/UI/Toast";
 import { createComment, getCommentsByPostId, getPostById, likePost } from "../services/postService";
@@ -251,14 +252,14 @@ export default function SinglePostPage() {
               <div className="space-y-4 text-zinc-300">
                 {splitContentBlocks(post.content).map((block, index) =>
                   block.type === "code" ? (
-                    <div key={index} className="overflow-hidden rounded-2xl border border-white/10 bg-black">
-                      <div className="flex items-center justify-between border-b border-white/10 px-4 py-2 text-xs uppercase tracking-[0.14em] text-zinc-500">
-                        <span>Snippet</span>
+                    <div key={index} className="space-y-2">
+                      <div className="flex items-center justify-between px-1 text-xs uppercase tracking-[0.14em] text-zinc-500">
+                        <span className="px-1">Snippet</span>
                         <button onClick={() => handleCopyCode(block.value)} className="rounded-lg border border-white/10 px-2 py-1 text-[10px] text-zinc-300 hover:border-white/20">
                           {copiedCode ? "Copied" : "Copy"}
                         </button>
                       </div>
-                      <pre className="overflow-x-auto p-4 font-mono text-xs text-zinc-200"><code>{block.value}</code></pre>
+                      <CodeSnippetWindow code={block.value} maxHeight={360} />
                     </div>
                   ) : (
                     <p key={index} className="leading-8 text-zinc-300">{block.value}</p>

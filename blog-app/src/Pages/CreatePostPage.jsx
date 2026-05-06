@@ -1,4 +1,4 @@
-﻿import { useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import hljs from "highlight.js/lib/core";
 import javascript from "highlight.js/lib/languages/javascript";
 import typescript from "highlight.js/lib/languages/typescript";
@@ -10,6 +10,7 @@ import bash from "highlight.js/lib/languages/bash";
 import "highlight.js/styles/github-dark.css";
 import Button from "../components/UI/Button";
 import Card from "../components/UI/Card";
+import CodeSnippetWindow from "../components/UI/CodeSnippetWindow";
 import InputField from "../components/UI/InputField";
 import Toast from "../components/UI/Toast";
 import { createPost } from "../services/postService";
@@ -47,7 +48,7 @@ function sanitizeHtml(raw = "") {
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
-    .replace(/\"/g, "&quot;")
+    .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;");
 }
 
@@ -62,6 +63,7 @@ export default function CreatePostPage() {
   const [snippetLanguage, setSnippetLanguage] = useState(LANGUAGE_OPTIONS[0]);
   const [snippetCode, setSnippetCode] = useState("");
   const [snippetFilename, setSnippetFilename] = useState("");
+  const [snippetScrollTop, setSnippetScrollTop] = useState(0);
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState(null);
   const [editorMode, setEditorMode] = useState("Mixed");
@@ -69,6 +71,11 @@ export default function CreatePostPage() {
   const modeOptions = ["Mixed", "Code", "Media"];
 
   const snippetLineCount = useMemo(() => (snippetCode.trim() ? snippetCode.split("\n").length : 0), [snippetCode]);
+  const snippetEditorLineNumbers = useMemo(() => {
+    const lines = snippetCode.replace(/\r\n/g, "\n").split("\n");
+    const count = Math.max(lines.length, 1);
+    return Array.from({ length: count }, (_, index) => index + 1);
+  }, [snippetCode]);
 
   const highlightedSnippet = useMemo(() => {
     if (!snippetCode.trim()) return "";
@@ -266,59 +273,6 @@ export default function CreatePostPage() {
                     <img src={URL.createObjectURL(formData.image)} alt="Preview" className="h-56 w-full object-cover" />
                   </div>
                 )}
-
-                <div className="space-y-3 rounded-2xl border border-white/10 bg-black p-4">
-                  <div className="flex flex-wrap items-center justify-between gap-3">
-                    <div>
-                      <p className="text-sm font-semibold text-zinc-100">Code snippet upload</p>
-                      <p className="text-xs text-zinc-500">Snippet library: highlight.js</p>
-                    </div>
-
-                    <div className="flex flex-wrap items-center gap-2">
-                      <select
-                        value={snippetLanguage}
-                        onChange={(event) => setSnippetLanguage(event.target.value)}
-                        className="rounded-xl border border-white/10 bg-zinc-900 px-3 py-2 text-xs font-semibold uppercase tracking-[0.08em] text-zinc-200 focus:border-brand-300 focus:outline-none"
-                      >
-                        {LANGUAGE_OPTIONS.map((language) => (
-                          <option key={language} value={language}>
-                            {language}
-                          </option>
-                        ))}
-                      </select>
-
-                      <label className="inline-flex cursor-pointer items-center rounded-xl border border-white/10 bg-zinc-900 px-3 py-2 text-xs font-semibold text-zinc-200 hover:border-white/20">
-                        Upload code
-                        <input
-                          type="file"
-                          accept=".txt,.js,.mjs,.cjs,.ts,.jsx,.tsx,.py,.json,.html,.htm,.css,.scss,.sh,.bash"
-                          className="hidden"
-                          onChange={handleSnippetUpload}
-                        />
-                      </label>
-                    </div>
-                  </div>
-
-                  {snippetFilename && <p className="text-xs text-brand-200">Loaded: {snippetFilename}</p>}
-
-                  <textarea
-                    value={snippetCode}
-                    onChange={(event) => setSnippetCode(event.target.value)}
-                    placeholder="Paste or upload your code snippet here..."
-                    className="min-h-[220px] w-full rounded-2xl border border-white/10 bg-zinc-950 px-4 py-3 font-mono text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-brand-300 focus:outline-none"
-                  />
-
-                  <div className="overflow-hidden rounded-2xl border border-white/10 bg-zinc-950">
-                    <div className="border-b border-white/10 px-3 py-2 text-xs uppercase tracking-[0.12em] text-zinc-500">Preview</div>
-                    <pre className="max-h-[280px] overflow-auto p-4 text-sm leading-6">
-                      {highlightedSnippet ? (
-                        <code dangerouslySetInnerHTML={{ __html: highlightedSnippet }} />
-                      ) : (
-                        <code className="text-zinc-500">No snippet yet.</code>
-                      )}
-                    </pre>
-                  </div>
-                </div>
               </div>
 
               <div className="space-y-4">
@@ -343,6 +297,80 @@ export default function CreatePostPage() {
                     <li>Review before publish</li>
                   </ul>
                 </Card>
+              </div>
+            </div>
+
+            <div className="space-y-4 rounded-2xl border border-white/10 bg-black p-5">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <p className="text-sm font-semibold text-zinc-100">Code snippet upload</p>
+                  <p className="text-xs text-zinc-500">Snippet library: highlight.js</p>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2">
+                  <select
+                    value={snippetLanguage}
+                    onChange={(event) => setSnippetLanguage(event.target.value)}
+                    className="rounded-xl border border-white/10 bg-zinc-900 px-3 py-2 text-xs font-semibold uppercase tracking-[0.08em] text-zinc-200 focus:border-brand-300 focus:outline-none"
+                  >
+                    {LANGUAGE_OPTIONS.map((language) => (
+                      <option key={language} value={language}>
+                        {language}
+                      </option>
+                    ))}
+                  </select>
+
+                  <label className="inline-flex cursor-pointer items-center rounded-xl border border-white/10 bg-zinc-900 px-3 py-2 text-xs font-semibold text-zinc-200 hover:border-white/20">
+                    Upload code
+                    <input
+                      type="file"
+                      accept=".txt,.js,.mjs,.cjs,.ts,.jsx,.tsx,.py,.json,.html,.htm,.css,.scss,.sh,.bash"
+                      className="hidden"
+                      onChange={handleSnippetUpload}
+                    />
+                  </label>
+                </div>
+              </div>
+
+              {snippetFilename && <p className="text-xs text-brand-200">Loaded: {snippetFilename}</p>}
+
+              <div className="space-y-6">
+                <div className="snippet-window snippet-window--editor">
+                  <div className="snippet-window__chrome">
+                    <span className="snippet-window__dot snippet-window__dot--red" />
+                    <span className="snippet-window__dot snippet-window__dot--yellow" />
+                    <span className="snippet-window__dot snippet-window__dot--green" />
+                  </div>
+                  <div className="snippet-window__editor-shell">
+                    <div className="snippet-window__line-track" aria-hidden="true">
+                      <ol className="snippet-window__lines" style={{ transform: `translateY(-${snippetScrollTop}px)` }}>
+                        {snippetEditorLineNumbers.map((lineNumber) => (
+                          <li key={lineNumber}>{lineNumber}</li>
+                        ))}
+                      </ol>
+                    </div>
+                    <textarea
+                      value={snippetCode}
+                      onChange={(event) => setSnippetCode(event.target.value)}
+                      onScroll={(event) => setSnippetScrollTop(event.target.scrollTop)}
+                      placeholder="Paste or upload your code snippet here..."
+                      className="snippet-window__editor-textarea"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <div className="mb-2 flex items-center justify-between px-1">
+                    <p className="text-xs uppercase tracking-[0.12em] text-zinc-500">Preview</p>
+                    <p className="text-[10px] text-zinc-600">Read-only</p>
+                  </div>
+                  <CodeSnippetWindow
+                    code={snippetCode}
+                    highlightedHtml={highlightedSnippet}
+                    emptyText="No snippet yet."
+                    maxHeight={400}
+                  />
+                </div>
               </div>
             </div>
 
