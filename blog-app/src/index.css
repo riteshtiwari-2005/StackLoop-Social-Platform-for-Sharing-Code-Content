@@ -243,6 +243,30 @@
   line-height: inherit;
 }
 
+/* Custom scrollbar for snippet areas */
+.snippet-window__editor-textarea::-webkit-scrollbar,
+.snippet-window__scroll::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.snippet-window__editor-textarea::-webkit-scrollbar-track,
+.snippet-window__scroll::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.4);
+  border-radius: 4px;
+}
+
+.snippet-window__editor-textarea::-webkit-scrollbar-thumb,
+.snippet-window__scroll::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+}
+
+.snippet-window__editor-textarea::-webkit-scrollbar-thumb:hover,
+.snippet-window__scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
 .snippet-window__editor-textarea::placeholder {
   color: #97a0b5;
 }
@@ -261,29 +285,4 @@
   padding: 0;
 }
 
-.snippet-editor .hljs-tag,
-.snippet-editor .hljs-name {
-  color: #f7a3ca;
-}
 
-.snippet-editor .hljs-attr {
-  color: #86efac;
-}
-
-.snippet-editor .hljs-string {
-  color: #fde68a;
-}
-
-.snippet-editor .hljs-keyword,
-.snippet-editor .hljs-selector-tag {
-  color: #8be9fd;
-}
-
-.snippet-editor .hljs-title,
-.snippet-editor .hljs-title.class_ {
-  color: #c4b5fd;
-}
-
-.snippet-editor .hljs-comment {
-  color: #9ca3af;
-}

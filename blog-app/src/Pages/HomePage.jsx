@@ -1,17 +1,46 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
+import hljs from "highlight.js/lib/core";
+import javascript from "highlight.js/lib/languages/javascript";
+import typescript from "highlight.js/lib/languages/typescript";
+import xml from "highlight.js/lib/languages/xml";
+import css from "highlight.js/lib/languages/css";
+import json from "highlight.js/lib/languages/json";
+import python from "highlight.js/lib/languages/python";
+import bash from "highlight.js/lib/languages/bash";
 import Avatar from "../components/UI/Avatar";
 import Card from "../components/UI/Card";
 import CodeSnippetWindow from "../components/UI/CodeSnippetWindow";
 import Skeleton from "../components/UI/Skeleton";
-import { getAllPosts } from "../services/postService";
+import { getAllPosts, likePost } from "../services/postService";
+
+hljs.registerLanguage("javascript", javascript);
+hljs.registerLanguage("typescript", typescript);
+hljs.registerLanguage("html", xml);
+hljs.registerLanguage("css", css);
+hljs.registerLanguage("json", json);
+hljs.registerLanguage("python", python);
+hljs.registerLanguage("bash", bash);
 
 function extractPostPreview(content = "") {
   const fenceMatch = content.match(/```([\s\S]*?)```/);
   if (fenceMatch) {
+    let rawInner = fenceMatch[1].trim();
+    let language = "javascript";
+    
+    const knownLanguages = ["javascript", "typescript", "html", "css", "json", "python", "bash", "js", "ts", "py", "sh"];
+    const firstWordMatch = rawInner.match(/^([a-z0-9_-]+)\s+([\s\S]*)$/i);
+    
+    if (firstWordMatch && knownLanguages.includes(firstWordMatch[1].toLowerCase())) {
+      language = firstWordMatch[1].toLowerCase();
+      rawInner = firstWordMatch[2];
+    }
+
     return {
       type: "code",
-      value: fenceMatch[1].trim(),
+      language: language,
+      value: rawInner,
       text: content.replace(fenceMatch[0], "").trim(),
     };
   }
@@ -40,11 +69,54 @@ const MoreIcon = () => (
 );
 
 function FeedCard({ post }) {
+  const navigate = useNavigate();
+  const { user } = useSelector((state) => state.auth);
+  const userId = user?.id || user?._id || user?.user?.id || user?.user?._id;
+
+  const [liked, setLiked] = useState(() => {
+    if (!userId || !post.likes) return false;
+    return post.likes.includes(userId);
+  });
+  const [likeCount, setLikeCount] = useState(post.likes?.length || 0);
+  const [isCopied, setIsCopied] = useState(false);
+
   const preview = extractPostPreview(post.content || "");
   const authorId = post.author?.id || post.author?._id || "demo";
   const mediaUrl = post.image || post.mediaUrl || post.videoUrl || post.audioUrl || post.gifUrl;
   const username = post.author?.username || post.author?.name?.toLowerCase().replace(/\s+/g, '') || "user";
-  const hasUpvoted = post.likes && post.likes.length > 0;
+
+  const handleLike = async (e) => {
+    e.preventDefault();
+    if (!userId) {
+      navigate('/login');
+      return;
+    }
+    
+    const willLike = !liked;
+    setLiked(willLike);
+    setLikeCount((count) => count + (willLike ? 1 : -1));
+    
+    try {
+      await likePost(post._id);
+    } catch (err) {
+      setLiked(!willLike);
+      setLikeCount((count) => count + (willLike ? -1 : 1));
+    }
+  };
+
+  const handleComment = (e) => {
+    e.preventDefault();
+    navigate(`/post/${post._id}`);
+  };
+
+  const handleShare = async (e) => {
+    e.preventDefault();
+    if (navigator.clipboard) {
+      await navigator.clipboard.writeText(`${window.location.origin}/post/${post._id}`);
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2000);
+    }
+  };
 
   return (
     <div className="py-6 sm:py-8 first:pt-0 border-b border-white/[0.08] last:border-0">
@@ -84,34 +156,44 @@ function FeedCard({ post }) {
 
           {preview.type === "code" && (
             <div className="mt-3 overflow-hidden rounded-[1.25rem] border border-white/[0.05]">
-              <CodeSnippetWindow code={preview.value} maxHeight={300} />
+              <CodeSnippetWindow 
+                code={preview.value} 
+                highlightedHtml={(() => {
+                  try {
+                    return hljs.highlight(preview.value, { language: preview.language || "javascript" }).value;
+                  } catch {
+                    return undefined;
+                  }
+                })()}
+                maxHeight={300} 
+              />
             </div>
           )}
 
           <div className="flex items-center justify-between pt-2">
             <div className="flex items-center gap-5 sm:gap-7">
-              <button className={`flex items-center gap-2 rounded-full px-4 py-1.5 text-[13px] font-bold transition-colors ${hasUpvoted ? 'bg-zinc-100 text-black hover:bg-white' : 'bg-transparent border border-white/20 text-zinc-100 hover:bg-white/10'}`}>
+              <button onClick={handleLike} className={`flex items-center gap-2 rounded-full px-4 py-1.5 text-[13px] font-bold transition-colors ${liked ? 'bg-zinc-100 text-black hover:bg-white' : 'bg-transparent border border-white/20 text-zinc-100 hover:bg-white/10'}`}>
                 <UpvoteIcon />
-                <span>{post.likes?.length ? `${post.likes.length} Point${post.likes.length !== 1 ? 's' : ''}` : 'Upvote'}</span>
+                <span>{likeCount ? `${likeCount} Point${likeCount !== 1 ? 's' : ''}` : 'Upvote'}</span>
               </button>
               
-              <button className="flex items-center gap-2 text-[13px] font-medium text-zinc-400 hover:text-zinc-200 transition-colors">
+              <button onClick={handleComment} className="flex items-center gap-2 text-[13px] font-medium text-zinc-400 hover:text-zinc-200 transition-colors">
                 <CommentIcon />
                 <span>Comment</span>
               </button>
               
-              <button className="flex items-center gap-2 text-[13px] font-medium text-zinc-400 hover:text-zinc-200 transition-colors">
+              <div className="flex items-center gap-2 text-[13px] font-medium text-zinc-500">
                 <EyeIcon />
-                <span>{post.views?.length || 593} Views</span>
-              </button>
+                <span>{post.views?.length || 0} Views</span>
+              </div>
             </div>
             
-            <div className="flex items-center gap-5">
-              <button className="flex items-center gap-2 text-[13px] font-medium text-zinc-400 hover:text-zinc-200 transition-colors">
+            <div className="flex items-center gap-4 text-zinc-400">
+              <button onClick={handleShare} className="flex items-center gap-1.5 text-[13px] font-medium hover:text-zinc-200 transition-colors">
                 <ShareIcon />
-                <span className="hidden sm:inline">Share</span>
+                <span>{isCopied ? "Copied!" : "Share"}</span>
               </button>
-              <button className="flex items-center text-zinc-400 hover:text-zinc-200 transition-colors">
+              <button className="hover:text-zinc-200 transition-colors">
                 <MoreIcon />
               </button>
             </div>

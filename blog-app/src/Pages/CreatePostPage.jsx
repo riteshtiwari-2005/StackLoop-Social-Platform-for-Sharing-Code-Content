@@ -7,12 +7,14 @@ import css from "highlight.js/lib/languages/css";
 import json from "highlight.js/lib/languages/json";
 import python from "highlight.js/lib/languages/python";
 import bash from "highlight.js/lib/languages/bash";
-import "highlight.js/styles/github-dark.css";
+import "highlight.js/styles/vs2015.css";
 import Button from "../components/UI/Button";
 import Card from "../components/UI/Card";
 import CodeSnippetWindow from "../components/UI/CodeSnippetWindow";
 import InputField from "../components/UI/InputField";
 import Toast from "../components/UI/Toast";
+import EditorModule from "react-simple-code-editor";
+const Editor = EditorModule.default || EditorModule;
 import { createPost } from "../services/postService";
 
 hljs.registerLanguage("javascript", javascript);
@@ -78,11 +80,12 @@ export default function CreatePostPage() {
   }, [snippetCode]);
 
   const highlightedSnippet = useMemo(() => {
-    if (!snippetCode.trim()) return "";
+    const safeCode = snippetCode || "";
+    if (!safeCode) return "";
     try {
-      return hljs.highlight(snippetCode, { language: snippetLanguage }).value;
+      return hljs.highlight(safeCode, { language: snippetLanguage }).value;
     } catch {
-      return sanitizeHtml(snippetCode);
+      return sanitizeHtml(safeCode);
     }
   }, [snippetCode, snippetLanguage]);
 
@@ -169,11 +172,10 @@ export default function CreatePostPage() {
                     key={mode}
                     type="button"
                     onClick={() => setEditorMode(mode)}
-                    className={`rounded-xl border px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.12em] ${
-                      editorMode === mode
-                        ? "border-brand-300/45 bg-brand-300/15 text-brand-100"
-                        : "border-white/10 bg-black text-zinc-400 hover:border-white/20 hover:text-zinc-200"
-                    }`}
+                    className={`rounded-xl border px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.12em] ${editorMode === mode
+                      ? "border-brand-300/45 bg-brand-300/15 text-brand-100"
+                      : "border-white/10 bg-black text-zinc-400 hover:border-white/20 hover:text-zinc-200"
+                      }`}
                   >
                     {mode}
                   </button>
@@ -349,13 +351,33 @@ export default function CreatePostPage() {
                         ))}
                       </ol>
                     </div>
-                    <textarea
-                      value={snippetCode}
-                      onChange={(event) => setSnippetCode(event.target.value)}
+                    <div
+                      className="w-full h-[400px] overflow-auto snippet-editor"
                       onScroll={(event) => setSnippetScrollTop(event.target.scrollTop)}
-                      placeholder="Paste or upload your code snippet here..."
-                      className="snippet-window__editor-textarea"
-                    />
+                    >
+                      <Editor
+                        value={snippetCode}
+                        onValueChange={(code) => setSnippetCode(code)}
+                        highlight={(code) => {
+                          const safeCode = code || "";
+                          if (!safeCode) return "";
+                          try {
+                            return hljs.highlight(safeCode, { language: snippetLanguage }).value;
+                          } catch {
+                            return sanitizeHtml(safeCode);
+                          }
+                        }}
+                        padding={16}
+                        style={{
+                          fontFamily: '"IBM Plex Mono", monospace',
+                          fontSize: "0.95rem",
+                          backgroundColor: "transparent",
+                          minHeight: "100%",
+                        }}
+                        className="text-[#e4e4e7]"
+                        textareaClassName="focus:outline-none"
+                      />
+                    </div>
                   </div>
                 </div>
 

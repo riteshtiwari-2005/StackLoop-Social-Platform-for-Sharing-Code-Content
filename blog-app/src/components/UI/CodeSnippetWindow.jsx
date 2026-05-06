@@ -19,7 +19,7 @@ export default function CodeSnippetWindow({
   emptyText = "No snippet yet.",
   className = "",
   maxHeight = 320,
-  highlightRange = { start: 8, end: 11 },
+  highlightRange = null,
 }) {
   const normalizedCode = normalizeCode(code);
   const hasCode = normalizedCode.trim().length > 0;
