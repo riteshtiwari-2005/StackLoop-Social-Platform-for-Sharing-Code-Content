@@ -73,11 +73,10 @@ function AppIcon({ type, className = "h-4 w-4" }) {
 
 function Brand() {
   return (
-    <Link to="/" className="inline-flex items-center gap-2">
+    <Link to="/" className="inline-flex items-center gap-2 ">
       <span className="signal-dot" />
-      <span className="font-display text-2xl font-bold text-zinc-100">StackLoop</span>
-      <span className="hidden rounded-full border border-white/10 px-2 py-0.5 text-xs text-zinc-500 sm:inline">studio</span>
-    </Link>
+      <span className="font-display text-2xl font-bold text-zinc-100">{"</StackLoop>"}</span>
+    </Link >
   );
 }
 
@@ -120,8 +119,7 @@ function TopHeader() {
                 to={item.to}
                 end={item.end}
                 className={({ isActive }) =>
-                  `inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium transition-colors ${
-                    isActive ? "bg-brand-400 text-black" : "text-zinc-400 hover:bg-zinc-900 hover:text-zinc-100"
+                  `inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium transition-colors ${isActive ? "bg-brand-400 text-black" : "text-zinc-400 hover:bg-zinc-900 hover:text-zinc-100"
                   }`
                 }
               >
@@ -203,10 +201,9 @@ function LeftRail() {
                 to={link.to}
                 end={link.to === "/"}
                 className={({ isActive }) =>
-                  `block rounded-2xl border px-3 py-3 transition-colors ${
-                    isActive
-                      ? "border-brand-300/40 bg-brand-300/10"
-                      : "border-white/10 bg-black hover:border-white/20"
+                  `block rounded-2xl border px-3 py-3 transition-colors ${isActive
+                    ? "border-brand-300/40 bg-brand-300/10"
+                    : "border-white/10 bg-black hover:border-white/20"
                   }`
                 }
               >

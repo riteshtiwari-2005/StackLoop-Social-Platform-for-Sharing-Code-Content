@@ -92,7 +92,7 @@ export default function DashboardPage() {
   return (
     <div className="space-y-6">
       <Card className="overflow-hidden border-brand-300/20 bg-gradient-to-br from-zinc-950 to-brand-900/20 p-0">
-        <div className="grid gap-6 p-6 lg:grid-cols-[1fr_360px]">
+        <div className="grid gap-6 p-6 lg:grid-cols-[1fr_360px] lg:items-center">
           <div className="space-y-4">
             <span className="app-chip">Creator studio</span>
             <h1 className="section-title">Manage posts and track engagement</h1>
@@ -103,9 +103,9 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid h-fit grid-cols-3 gap-3">
             {stats.map((item) => (
-              <div key={item.label} className="rounded-2xl border border-white/10 bg-black/60 p-4 text-center">
+              <div key={item.label} className="flex flex-col items-center justify-center rounded-2xl border border-white/10 bg-black/60 p-4 text-center">
                 <p className="text-2xl font-bold text-zinc-100">{item.value}</p>
                 <p className="mt-1 text-xs uppercase tracking-[0.2em] text-zinc-500">{item.label}</p>
               </div>
