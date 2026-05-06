@@ -12,6 +12,7 @@ import Button from "../components/UI/Button";
 import Card from "../components/UI/Card";
 import CodeSnippetWindow from "../components/UI/CodeSnippetWindow";
 import InputField from "../components/UI/InputField";
+import Select from "../components/UI/Select";
 import Toast from "../components/UI/Toast";
 import EditorModule from "react-simple-code-editor";
 const Editor = EditorModule.default || EditorModule;
@@ -210,18 +211,13 @@ export default function CreatePostPage() {
 
               <div className="space-y-1.5">
                 <label className="text-sm font-medium text-zinc-300">Category</label>
-                <select
+                <Select
                   name="category"
                   value={formData.category}
+                  options={CATEGORY_OPTIONS}
                   onChange={handleChange}
-                  className="w-full rounded-2xl border border-white/10 bg-black px-4 py-3 text-zinc-100 focus:border-brand-300 focus:outline-none"
-                >
-                  {CATEGORY_OPTIONS.map((category) => (
-                    <option key={category} value={category}>
-                      {category}
-                    </option>
-                  ))}
-                </select>
+                  className="rounded-2xl border border-white/10 bg-black px-4 py-3 text-zinc-100 hover:border-white/20 focus:border-brand-300 focus:outline-none"
+                />
               </div>
             </div>
 
@@ -310,17 +306,12 @@ export default function CreatePostPage() {
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2">
-                  <select
+                  <Select
                     value={snippetLanguage}
-                    onChange={(event) => setSnippetLanguage(event.target.value)}
-                    className="rounded-xl border border-white/10 bg-zinc-900 px-3 py-2 text-xs font-semibold uppercase tracking-[0.08em] text-zinc-200 focus:border-brand-300 focus:outline-none"
-                  >
-                    {LANGUAGE_OPTIONS.map((language) => (
-                      <option key={language} value={language}>
-                        {language}
-                      </option>
-                    ))}
-                  </select>
+                    options={LANGUAGE_OPTIONS}
+                    onChange={(e) => setSnippetLanguage(e.target.value)}
+                    className="w-[140px] rounded-xl border border-white/10 bg-zinc-900 px-3 py-2 text-xs font-semibold uppercase tracking-[0.08em] text-zinc-200 hover:border-white/20 focus:border-brand-300 focus:outline-none"
+                  />
 
                   <label className="inline-flex cursor-pointer items-center rounded-xl border border-white/10 bg-zinc-900 px-3 py-2 text-xs font-semibold text-zinc-200 hover:border-white/20">
                     Upload code

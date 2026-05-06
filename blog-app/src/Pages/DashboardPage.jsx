@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 import Avatar from "../components/UI/Avatar";
@@ -6,6 +6,7 @@ import Button from "../components/UI/Button";
 import Card from "../components/UI/Card";
 import InputField from "../components/UI/InputField";
 import Modal from "../components/UI/Modal";
+import Select from "../components/UI/Select";
 import { createPost, getAllPosts, likePost } from "../services/postService";
 
 export default function DashboardPage() {
@@ -119,16 +120,13 @@ export default function DashboardPage() {
 
           <div>
             <label className="mb-1.5 block text-sm font-medium text-zinc-300">Category</label>
-            <select
+            <Select
               name="category"
               value={postForm.category}
+              options={categories}
               onChange={handlePostFormChange}
-              className="w-full rounded-2xl border border-white/10 bg-black px-4 py-3 text-zinc-100 focus:border-brand-300 focus:outline-none"
-            >
-              {categories.map((category) => (
-                <option key={category} value={category}>{category}</option>
-              ))}
-            </select>
+              className="rounded-2xl border border-white/10 bg-black px-4 py-3 text-sm text-zinc-100 hover:border-white/20 focus:border-brand-300 focus:outline-none"
+            />
           </div>
 
           <InputField label="Content" type="textarea" name="content" value={postForm.content} onChange={handlePostFormChange} placeholder="Write your content" rows="6" required />
