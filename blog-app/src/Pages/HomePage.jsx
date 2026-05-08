@@ -20,6 +20,7 @@ import {
   categogary,
   likePost,
 } from "../services/postService";
+import { Editor } from "@monaco-editor/react";
 
 hljs.registerLanguage("javascript", javascript);
 hljs.registerLanguage("typescript", typescript);
@@ -296,32 +297,42 @@ function FeedCard({ post }) {
 
           {/* CODE */}
           {preview.type === "code" && (
+            <>
+           <div className="flex items-center  justify-between  border-white/10 bg-[#31395A]  py-4 ">
 
-            <div className="mt-3 overflow-hidden rounded-[1.25rem] border border-white/[0.05]">
+                    <div className="flex items-center gap-2">
+                      <div className="h-3 w-3 rounded-full bg-red-400"></div>
+                      <div className="h-3 w-3 rounded-full bg-yellow-400"></div>
+                      <div className="h-3 w-3 rounded-full bg-green-400"></div>
+                    </div>
 
-              <CodeSnippetWindow
-                code={preview.value}
-                highlightedHtml={(() => {
-                  try {
+                    <p className="text-xs uppercase tracking-[0.12em] text-zinc-300">
+                      {post.language || "code snippet"}
+                    </p>
+                  </div>
 
-                    return hljs.highlight(
-                      preview.value,
-                      {
-                        language:
-                          preview.language ||
-                          "javascript",
-                      }
-                    ).value;
+           <Editor 
+              height="200px"
+              defaultLanguage={post.language || "python"}
+              theme="vs-dark"
+              defaultValue={ post.code}
+              options={{
+                fontSize: 14,
+                minimap: {
+                  enabled: false,
+                },
+                scrollBeyondLastLine: false,
+                wordWrap: "on",
+                lineNumbersMinChars: 3,
+                glyphMargin: false,
+                folding: false,
+                lineDecorationsWidth: 10,
+                readOnly: true,
+                renderLineHighlight: "none",
+              }}
+           />
 
-                  } catch {
-
-                    return undefined;
-                  }
-                })()}
-                maxHeight={300}
-              />
-
-            </div>
+            </>
 
           )}
 
@@ -383,7 +394,7 @@ function FeedCard({ post }) {
 
 // ================= HOME PAGE =================
 
-export default function HomePage() {
+export default function HomePage({ search, setSearch, searchpost, setSearchpost }) {
 
   const [posts, setPosts] = useState([]);
 
@@ -401,6 +412,8 @@ export default function HomePage() {
     "Lifestyle",
     "Business",
   ];
+
+  
 
 
   // FETCH POSTS
@@ -450,6 +463,40 @@ export default function HomePage() {
 
   }, [activeCategory]);
 
+  // ================= RENDER =================
+  // FETCH POSTS
+  useEffect(() => {
+
+    const fetchPosts = async () => {
+
+      try {
+
+        setLoading(true);
+console.log(searchpost)
+        // ALL POSTS
+        setPosts(searchpost.posts || []);
+      
+
+      } catch (err) {
+
+        console.log(err);
+
+
+      } finally {
+
+        setLoading(false);
+
+      }
+
+    };
+
+    fetchPosts();
+
+  }, [search]);
+
+
+ 
+
 
   return (
     <div className="space-y-6">
@@ -471,6 +518,8 @@ export default function HomePage() {
             <p className="section-copy max-w-2xl">
               Discover high-signal posts from developers and designers.
             </p>
+
+            
 
 
             {/* CATEGORY BUTTONS */}

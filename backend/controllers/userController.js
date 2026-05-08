@@ -40,16 +40,19 @@ exports.editProfile = async (req, res) => {
 exports.viewProfile = async (req, res) => {
   try {
     const userId = req.user.id;
-    const profiledata = await Post.find({ author: userId }).countDocuments();
+    const profiledata = await Post.find({ author: userId,code:""
+     }).limit(2).sort({ createdAt: -1 });
+
 
     const userdata = await Profile.findOneAndUpdate(
       { user: userId },
-      { $set: { postsCount: profiledata } },
+      { $set: { postsCount: profiledata.length } },
       { new: true }
-    );
+    )
 
     return res.status(200).json({
-      profile: userdata
+      profile: userdata,
+      posts: profiledata
     });
   } catch (e) {
     return res.status(500).json({

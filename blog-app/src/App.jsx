@@ -12,6 +12,10 @@ import ProfilePage from "./Pages/ProfilePage";
 import RegisterPage from "./Pages/RegisterPage";
 import SinglePostPage from "./Pages/SinglePostPage";
 import { buyrazorpay } from "./services/paymentService";
+import CodeEditor from "./Pages/CodeEditor";
+import { useState } from "react";
+import axios from "./services/api";
+import { Editor } from "@monaco-editor/react";
 
 const TAGS = ["Web", "Devtools", "Product", "Design", "API", "UX", "AI", "Frontend", "Backend"];
 const CREW = ["Maya", "Rohan", "Vipul", "Nia", "James"];
@@ -80,10 +84,14 @@ function Brand() {
   );
 }
 
-function MainRoutes() {
+
+
+
+function MainRoutes({ search, setSearch, searchpost, setSearchpost }) {
+  
   return (
     <Routes>
-      <Route path="/" element={<HomePage />} />
+      <Route path="/" element={<HomePage search={search} setSearch={setSearch} searchpost={searchpost} setSearchpost={setSearchpost} />} />
       <Route path="/post/:id" element={<SinglePostPage />} />
       <Route path="/user/:id" element={<OtherUserProfilePage />} />
       <Route path="/login" element={<LoginPage />} />
@@ -92,13 +100,26 @@ function MainRoutes() {
       <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
       <Route path="/create-post" element={<ProtectedRoute><CreatePostPage /></ProtectedRoute>} />
       <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+      <Route path="/codeeditor" element={<CodeEditor/>} />
     </Routes>
   );
 }
 
-function TopHeader() {
+function TopHeader({ search, setSearch, searchpost, setSearchpost }) {
   const dispatch = useDispatch();
   const { token, user } = useSelector((state) => state.auth);
+
+const handlechange=async (e)=>{
+  setSearch(e.target.value);
+  if(e.target.value.trim()===""){
+    setSearchpost([]);
+    return;
+  }
+const response=await axios.get(`/auth/v1/v2/search?query=${e.target.value}`);  
+setSearchpost(response.data);
+
+console.log(response.data); 
+} 
 
   const navItems = [
     { to: "/", label: "Feed", icon: "home", end: true },
@@ -132,7 +153,7 @@ function TopHeader() {
           <div className="hidden min-w-[280px] flex-1 lg:flex lg:justify-center">
             <div className="relative w-full max-w-md">
               <AppIcon type="search" className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" />
-              <input className="command-input pl-10" placeholder="Search people, posts, snippets" />
+              <input name="search" className="command-input pl-10" placeholder="Search people, posts, snippets" onChange={handlechange} />
             </div>
           </div>
 
@@ -272,13 +293,16 @@ function RightRail() {
 function AppLayout() {
   const location = useLocation();
   const isAuthPage = ["/login", "/register"].includes(location.pathname);
+  const [search, setsearch] = useState("");
+  const [searchpost, setSearchpost] = useState([]);
+  console.log(searchpost);
 
   if (isAuthPage) {
     return (
       <div className="min-h-screen bg-black text-zinc-100">
         <main className="relative mx-auto flex min-h-screen w-full max-w-6xl items-center justify-center px-4 py-12">
           <div className="pointer-events-none absolute inset-0 -z-10 opacity-40 [background:radial-gradient(circle_at_15%_20%,rgba(0,209,141,0.15),transparent_25%),radial-gradient(circle_at_85%_10%,rgba(255,196,77,0.15),transparent_22%)]" />
-          <MainRoutes />
+          <MainRoutes search={search} setSearch={setsearch}  searchpost={searchpost} setSearchpost={setSearchpost} />
         </main>
       </div>
     );
@@ -286,12 +310,12 @@ function AppLayout() {
 
   return (
     <div className="min-h-screen bg-black text-zinc-100">
-      <TopHeader />
+      <TopHeader search={search} setSearch={setsearch} searchpost={searchpost} setSearchpost={setSearchpost} />
       <div className="layout-container py-6">
         <div className="grid gap-6 xl:grid-cols-[240px_minmax(0,1fr)] 2xl:grid-cols-[240px_minmax(0,1fr)_300px]">
           <LeftRail />
           <main className="min-w-0">
-            <MainRoutes />
+            <MainRoutes search={search} setSearch={setsearch}  searchpost={searchpost} setSearchpost={setSearchpost} />
           </main>
           <RightRail />
         </div>

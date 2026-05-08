@@ -11,6 +11,7 @@ export default function ProfilePage() {
   const [openModal, setOpenModal] = useState(false);
   const [loading, setLoading] = useState(false);
   const [photoFile, setPhotoFile] = useState(null);
+  const [recentposts, setRecentPosts] = useState([]);
 
   const [formData, setFormData] = useState({ username: "", bio: "", twitter: "", linkedin: "", github: "" });
 
@@ -19,6 +20,7 @@ export default function ProfilePage() {
       try {
         const data = await getCurrentUserProfile();
         setProfile(data.profile);
+        setRecentPosts(data.posts);
         setFormData({
           username: data.profile.username || "",
           bio: data.profile.bio || "",
@@ -130,19 +132,25 @@ export default function ProfilePage() {
         <Card className="p-5">
           <p className="app-chip">Recent posts</p>
           <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
-            {[1, 2].map((i) => (
-              <div key={i} className="overflow-hidden rounded-2xl border border-white/10 bg-black">
+
+
+            {recentposts.map((post) => (
+              <div key={post._id} className="overflow-hidden rounded-2xl border border-white/10 bg-black">
                 <img
-                  src={`https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=500&q=80&sig=${i}`}
+                  src={post.image || "https://thumbs.dreamstime.com/b/no-image-available-icon-flat-vector-no-image-available-icon-flat-vector-illustration-132482953.jpg"}
                   alt="Post"
-                  className="h-40 w-full object-cover"
+                  className={`h-40 w-full object-cover }`}
                 />
                 <div className="p-4">
-                  <h3 className="font-display text-2xl text-zinc-100">My post {i}</h3>
-                  <p className="mt-1 text-sm text-zinc-400">Placeholder preview text for recent published content.</p>
+                  <h3 className="font-display text-2xl text-zinc-100">{post.title}</h3>
+                  <p className="mt-1 text-sm text-zinc-400">{post.content}</p>
                 </div>
               </div>
             ))}
+
+
+
+
           </div>
         </Card>
       </div>

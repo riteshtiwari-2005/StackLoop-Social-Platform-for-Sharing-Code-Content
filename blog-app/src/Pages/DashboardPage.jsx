@@ -8,6 +8,7 @@ import InputField from "../components/UI/InputField";
 import Modal from "../components/UI/Modal";
 import Select from "../components/UI/Select";
 import { createPost, getAllPosts, likePost } from "../services/postService";
+import { Editor } from "@monaco-editor/react";
 
 export default function DashboardPage() {
   const { user } = useSelector((state) => state.auth);
@@ -16,6 +17,7 @@ export default function DashboardPage() {
   const [posts, setPosts] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+const [iscoded, setIscoded] = useState(false);
   const [postForm, setPostForm] = useState({
     title: "",
     content: "",
@@ -35,6 +37,7 @@ export default function DashboardPage() {
       setLoading(true);
       const data = await getAllPosts();
       setPosts(data.posts || []);
+    
     } catch {
       setPosts([
         { _id: "1", title: "Shipping React features faster", content: "A practical workflow for keeping momentum.", author: { name: "Alice" }, likes: [1, 2], comments: [1], views: Array(120).fill(""), category: "Programming" },
@@ -178,7 +181,30 @@ export default function DashboardPage() {
               <div>
                 <h3 className="font-display text-3xl text-zinc-100">
                   <Link to={`/post/${post._id}`} className="hover:text-brand-200">{post.title}</Link>
-                </h3>
+                </h3>{post.code!="" &&    
+                <Editor
+                  height="200px"
+                  defaultLanguage={post.language || "python"}
+                  theme="vs-dark"
+                  defaultValue={post.code}
+                  options={{
+                    fontSize: 14,
+                    minimap: {
+                      enabled: false,
+                    },
+                    scrollBeyondLastLine: false,
+                    wordWrap: "on",
+                    lineNumbersMinChars: 3,
+                    glyphMargin: false,
+                    folding: false,
+                    lineDecorationsWidth: 10,
+                    readOnly: true,
+                    renderLineHighlight: "none",
+                  }}
+                />
+                }
+
+             
                 <p className="mt-2 line-clamp-3 text-sm text-zinc-400">{post.content}</p>
               </div>
 

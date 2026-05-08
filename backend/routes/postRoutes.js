@@ -43,6 +43,9 @@ router.get("/postuser/:username", authMiddleware, postController.getPostUser);
 // Get my posts (Moved from userRoutes)
 router.get("/me/post", authMiddleware, postController.getMyPosts);
 
+//search post
+router.get("/v2/search", authMiddleware, postController.searchPosts);
+ 
 
 // Like post
 

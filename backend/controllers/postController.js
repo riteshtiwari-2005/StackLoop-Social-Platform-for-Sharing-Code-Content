@@ -95,6 +95,37 @@ exports.premiumPost = async (req, res) => {
   }
 };
 
+exports.searchPosts= async (req, res) => {
+  try{
+    const { query } = req.query;
+    console.log(req)
+     
+    
+    if (!query) {
+      return res.status(400).json({ 
+        msg: "Query parameter is required",
+      });
+    }
+
+const posts = await Post.find({title:{$regex:query,$options:"i"
+}}).lean().populate("author", "name email isPremium").sort({ createdAt: -1 });            
+
+return res.status(200).json({
+  message: "Search results",
+  posts,
+});     
+  
+  }
+
+  catch(err){
+    return res.status(500).json({ 
+      msg: "Server error",
+      error: err.message,
+    });
+  }
+}
+
+
 exports.createPost = async (req, res) => {
   try {
     console.log("FILE:", req.file); // ✅ correct logging
@@ -151,8 +182,8 @@ exports.fetchpostonTag = async (req,res) => {
     }
 
     const userdata = await User.findOne({ _id: userid })
-    const preniumpost = await Post.find({ isPremium: true, tags: tag }).sort({ createdAt: -1 })
-    const normalpost = await Post.find({ isPremium: false, tags: tag }).sort({ createdAt: -1 })
+    const preniumpost = await Post.find({ isPremium: true, tags: tag }).sort({ createdAt: -1 }).populate("author", "name email isPremium").lean();
+    const normalpost = await Post.find({ isPremium: false, tags: tag }).sort({ createdAt: -1 }).populate("author", "name email isPremium").lean();
     const copy = [...preniumpost, ...normalpost]
 
     return res.status(200).json({

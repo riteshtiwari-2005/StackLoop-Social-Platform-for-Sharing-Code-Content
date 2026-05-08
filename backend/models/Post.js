@@ -60,10 +60,11 @@ const postSchema = new mongoose.Schema(
     },
 
     iscode:{
-      type: Boolean
+      type: Boolean,
+      default: false
     },
 
-    language: {
+    language: { 
     type: String,
 
     enum: [
