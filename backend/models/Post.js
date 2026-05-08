@@ -49,13 +49,39 @@ const postSchema = new mongoose.Schema(
 
     tags: [
       {
-        type: "String",
+        type: String,
+        enum: ["Technology", "Design", "Programming", "Lifestyle", "Business"],
+        
       },
     ],
     isPremium: {
       type: Boolean,
-      default: false,
+      default: false, 
     },
+
+    iscode:{
+      type: Boolean
+    },
+
+    language: {
+    type: String,
+
+    enum: [
+      "javascript",
+      "typescript",
+      "html",
+      "css",
+      "json",
+      "python",
+      "bash",
+    ],
+
+  },
+  code:{
+      type: String
+    }
+
+
   },
   { timestamps: true }
 );

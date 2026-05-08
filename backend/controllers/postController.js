@@ -2,15 +2,15 @@ const Razorpay = require("../config/razorpay");
 const Post = require("../models/Post");
 const Profile = require("../models/Profile");
 const User = require("../models/User");
-const Payment=require("../models/PaymentModel")
+const Payment = require("../models/PaymentModel")
 const crypto = require("crypto");
 
 exports.getAllPosts = async (req, res) => {
   try {
-    const posts = await Post.find({isPremium:false}).lean()
+    const posts = await Post.find({ isPremium: false }).lean()
       .populate("author", "name email isPremium")
       .sort({ createdAt: -1 });
-      console.log("posts",posts);
+    console.log("posts", posts);
 
     const updatedPosts = await Promise.all(
       posts.map(async (post) => {
@@ -48,18 +48,18 @@ exports.getAllPosts = async (req, res) => {
 
 exports.premiumPost = async (req, res) => {
   try {
-// CHECK USER IS PRENIUM OR NOT
+    // CHECK USER IS PRENIUM OR NOT
     const user = await User.findById(req.user.id);
     if (!user.isPremium) {
       return res.status(403).json({
         msg: "Access denied. Premium members only.",
       });
     }
-    
-    const posts = await Post.find({isPremium:true}).lean()
+
+    const posts = await Post.find({ isPremium: true }).lean()
       .populate("author", "name email isPremium")
       .sort({ createdAt: -1 });
-      console.log("posts",posts);
+    console.log("posts", posts);
 
     const updatedPosts = await Promise.all(
       posts.map(async (post) => {
@@ -99,13 +99,15 @@ exports.createPost = async (req, res) => {
   try {
     console.log("FILE:", req.file); // ✅ correct logging
 
-    const { title, content, isPremium, image: bodyImage } = req.body;
+    const { title, content, isPremium, image: bodyImage, tag,code ,tag1} = req.body;
+    console.log(code)
 
-    if (!title || !content) {
+    if (!title || !content ) {
       return res.status(400).json({
         msg: "Fields are required",
       });
     }
+    console.log(req.body)
 
     // ✅ support both file upload and URL string
     const image = req.file ? req.file.path : (bodyImage || "");
@@ -118,6 +120,9 @@ exports.createPost = async (req, res) => {
       image,
       author: req.user.id,
       isPremium: isPremium === 'true' || isPremium === true || false,
+      tags: [tag],
+      language: tag1,
+      code: code || ""
     });
 
     return res.status(201).json({
@@ -126,9 +131,44 @@ exports.createPost = async (req, res) => {
     });
 
   } catch (err) {
+    console.log(err)
     res.status(500).json({ msg: "Server error", error: err.message });
   }
 };
+
+//fetch based on tag
+
+exports.fetchpostonTag = async (req,res) => {
+  try {
+    console.log(req.body)
+    const { tag } = req.body;
+
+    const userid = req.user.id;
+    if (!tag) {
+      return res.status(400).json({
+        msg: "Fields are required",
+      });
+    }
+
+    const userdata = await User.findOne({ _id: userid })
+    const preniumpost = await Post.find({ isPremium: true, tags: tag }).sort({ createdAt: -1 })
+    const normalpost = await Post.find({ isPremium: false, tags: tag }).sort({ createdAt: -1 })
+    const copy = [...preniumpost, ...normalpost]
+
+    return res.status(200).json({
+      message: "true",
+      post: userdata.isPremium ? copy : normalpost
+    })
+  }
+
+  catch (err) {
+  return res.status(500).json({
+    message: "internal server error",
+    err: err.message
+  })
+}
+}
+
 
 exports.getPostById = async (req, res) => {
   try {
@@ -140,7 +180,7 @@ exports.getPostById = async (req, res) => {
       { _id: postid },
       { $addToSet: { views: userid } },
       { new: true }
-    ).populate("author"," -password");
+    ).populate("author", " -password");
     console.log(post);
 
 
@@ -223,54 +263,53 @@ exports.likepost = async (req, res) => {
 }
 
 
-exports.recentpost=async (req,res)=>{
-  try{
-     const username=req.params.username;
-     const userdata=await Profile.findOne({username:username}).populate("user")
-     const userid=userdata.user._id;
-     const postdata=await Post.find({author:userid}).sort({createdAt:-1}).limit(2)
-     return res.status(201).json({
-      success:true,
+exports.recentpost = async (req, res) => {
+  try {
+    const username = req.params.username;
+    const userdata = await Profile.findOne({ username: username }).populate("user")
+    const userid = userdata.user._id;
+    const postdata = await Post.find({ author: userid }).sort({ createdAt: -1 }).limit(2)
+    return res.status(201).json({
+      success: true,
       postdata,
-      postcount:postdata.length
-     }) 
+      postcount: postdata.length
+    })
 
 
 
   }
 
-  catch(err)
-  {
-  return res.status(500).json({
-    "message":"false",
-     err:err
-  })
+  catch (err) {
+    return res.status(500).json({
+      "message": "false",
+      err: err
+    })
   }
 }
 
 // prenium post feauture
 
-exports.createOrder=async (req,res)=>{
-  try{
- console.log("triggered")
-    const options={
-      amount:500*100,
+exports.createOrder = async (req, res) => {
+  try {
+    console.log("triggered")
+    const options = {
+      amount: 500 * 100,
       currency: "INR",
       receipt: "rcpt_" + Date.now(),
     }
 
-    const order=await Razorpay.orders.create(options)
+    const order = await Razorpay.orders.create(options)
     //save in db 
 
-     
-     await Payment.create({
+
+    await Payment.create({
       user: req.user.id,
       amount: 500,
       orderId: order.id,
       status: "created",
     });
 
-      return   res.json(order);
+    return res.json(order);
 
 
 
@@ -280,19 +319,18 @@ exports.createOrder=async (req,res)=>{
 
   }
 
-  catch(err)
-  {
+  catch (err) {
     console.log(err)
-    await  res.status(500).json({
-      message:false,
-      error:err.message
+    await res.status(500).json({
+      message: false,
+      error: err.message
     })
-    }
-
   }
 
+}
 
- 
+
+
 
 exports.verifyPayment = async (req, res) => {
   try {
@@ -302,7 +340,7 @@ exports.verifyPayment = async (req, res) => {
       razorpay_signature,
     } = req.body;
 
-    if(!razorpay_order_id || !razorpay_payment_id || !razorpay_signature){
+    if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
       return res.status(400).json({ msg: "All fields are required" });
     }
 
@@ -349,3 +387,5 @@ exports.verifyPayment = async (req, res) => {
     res.status(500).json({ msg: "Verification failed" });
   }
 };
+
+

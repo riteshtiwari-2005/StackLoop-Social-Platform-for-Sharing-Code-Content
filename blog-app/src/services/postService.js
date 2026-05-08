@@ -7,12 +7,21 @@ export const getAllPosts = async () => {
   return response.data;
 };
 
+/// categogary related post
+export const categogary = async (postdata) => {
+  const response = await api.post("/auth/v1/tags",postdata);
+  return response.data;
+};
+
+
+
 export const getPremiumPosts = async () => {
   const response = await api.get("/auth/v1/posts/premium");
   return response.data;
 };
 
 export const createPost = async (postData) => {
+  console.log(postData)
   const response = await api.post("/auth/v1/posts/create", postData);
   return response.data;
 };

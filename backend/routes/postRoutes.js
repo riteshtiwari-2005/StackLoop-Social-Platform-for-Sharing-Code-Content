@@ -25,6 +25,8 @@ const upload = multer({storage}); // Configure multer to save to an uploads fold
 
 // 🔐 Get all posts
 router.get("/posts", authMiddleware, postController.getAllPosts);
+// fetch based on tag
+router.post("/tags", authMiddleware, postController.fetchpostonTag);
 
 // 🔐 Get premium posts
 router.get("/posts/premium", authMiddleware, postController.premiumPost);
@@ -40,6 +42,7 @@ router.get("/postuser/:username", authMiddleware, postController.getPostUser);
 
 // Get my posts (Moved from userRoutes)
 router.get("/me/post", authMiddleware, postController.getMyPosts);
+
 
 // Like post
 

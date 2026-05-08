@@ -60,9 +60,13 @@ export default function CreatePostPage() {
     title: "",
     content: "",
     image: null,
-    category: CATEGORY_OPTIONS[0],
+    tag: CATEGORY_OPTIONS[0],
     isPremium: false,
+    iscoded:false,   
+    code: "", 
+    tag1: LANGUAGE_OPTIONS[0],
   });
+  
   const [snippetLanguage, setSnippetLanguage] = useState(LANGUAGE_OPTIONS[0]);
   const [snippetCode, setSnippetCode] = useState("");
   const [snippetFilename, setSnippetFilename] = useState("");
@@ -70,6 +74,7 @@ export default function CreatePostPage() {
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState(null);
   const [editorMode, setEditorMode] = useState("Mixed");
+  const [isCodeMode, setIsCodeMode] = useState(true);
 
   const modeOptions = ["Mixed", "Code", "Media"];
 
@@ -102,6 +107,7 @@ export default function CreatePostPage() {
     try {
       const code = await file.text();
       setSnippetCode(code);
+      console.log("uploaded code " +code)
       setSnippetFilename(file.name);
 
       const extension = file.name.split(".").pop()?.toLowerCase();
@@ -130,8 +136,12 @@ export default function CreatePostPage() {
     try {
       const payload = new FormData();
       payload.append("title", formData.title);
-      payload.append("category", formData.category);
       payload.append("isPremium", formData.isPremium);
+      payload.append("iscoded", formData.iscoded);
+      payload.append("code", snippetCode);
+      payload.append("tag", formData.tag);
+      payload.append("tag1", snippetLanguage);
+
 
       const fullContent = [
         normalizedContent,
@@ -145,7 +155,7 @@ export default function CreatePostPage() {
 
       await createPost(payload);
       setToast({ message: "Post published successfully", type: "success" });
-      setFormData({ title: "", content: "", image: null, category: CATEGORY_OPTIONS[0], isPremium: false });
+      setFormData({ title: "", content: "", image: null, tag: CATEGORY_OPTIONS[0], isPremium: false, iscoded: false, code: snippetCode });
       setSnippetLanguage(LANGUAGE_OPTIONS[0]);
       setSnippetCode("");
       setSnippetFilename("");
@@ -212,8 +222,8 @@ export default function CreatePostPage() {
               <div className="space-y-1.5">
                 <label className="text-sm font-medium text-zinc-300">Category</label>
                 <Select
-                  name="category"
-                  value={formData.category}
+                  name="tag"
+                  value={formData.tag}
                   options={CATEGORY_OPTIONS}
                   onChange={handleChange}
                   className="rounded-2xl border border-white/10 bg-black px-4 py-3 text-zinc-100 hover:border-white/20 focus:border-brand-300 focus:outline-none"
@@ -233,6 +243,23 @@ export default function CreatePostPage() {
               <div>
                 <p className="text-sm font-semibold text-zinc-100">Premium content</p>
                 <p className="text-xs text-zinc-500">Gate this post for subscribers only.</p>
+              </div>
+            </label>
+
+            <label className="flex items-start gap-3 rounded-2xl border border-white/10 bg-black p-4">
+              <input
+                id="isCodeMode"
+                type="checkbox"
+                checked={isCodeMode}
+                onChange={(e) => {
+                  setIsCodeMode(e.target.checked);
+                  setFormData((prev) => ({ ...prev, iscoded: e.target.checked }));
+                }}
+                className="mt-1 h-4 w-4 rounded border-white/20 bg-black text-brand-400"
+              />
+              <div>
+                <p className="text-sm font-semibold text-zinc-100">Add code snippet</p>
+                <p className="text-xs text-zinc-500">Include a syntax-highlighted code snippet in your post.</p>
               </div>
             </label>
 
@@ -280,7 +307,7 @@ export default function CreatePostPage() {
                   <p className="mt-2 line-clamp-4 text-sm text-zinc-400">{formData.content || "Your post narrative appears here."}</p>
                   <div className="mt-3 space-y-1 text-xs text-zinc-500">
                     <p>Mode: {editorMode}</p>
-                    <p>Category: {formData.category}</p>
+                    <p>Category: {formData.tag}</p>
                     <p>Snippet lines: {snippetLineCount}</p>
                     <p>Premium: {formData.isPremium ? "Yes" : "No"}</p>
                   </div>
@@ -295,9 +322,13 @@ export default function CreatePostPage() {
                     <li>Review before publish</li>
                   </ul>
                 </Card>
+
+
+
               </div>
             </div>
 
+            {isCodeMode && (
             <div className="space-y-4 rounded-2xl border border-white/10 bg-black p-5">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
@@ -307,9 +338,15 @@ export default function CreatePostPage() {
 
                 <div className="flex flex-wrap items-center gap-2">
                   <Select
+                  name="tag1"
                     value={snippetLanguage}
                     options={LANGUAGE_OPTIONS}
-                    onChange={(e) => setSnippetLanguage(e.target.value)}
+                    onChange={(e) => {
+                      setSnippetLanguage(e.target.value)
+                    }
+
+
+                    }
                     className="w-[140px] rounded-xl border border-white/10 bg-zinc-900 px-3 py-2 text-xs font-semibold uppercase tracking-[0.08em] text-zinc-200 hover:border-white/20 focus:border-brand-300 focus:outline-none"
                   />
 
@@ -386,6 +423,7 @@ export default function CreatePostPage() {
                 </div>
               </div>
             </div>
+            )}
 
             <div className="flex justify-end gap-3 border-t border-white/10 pt-4">
               <Button type="button" variant="ghost">Save Draft</Button>
