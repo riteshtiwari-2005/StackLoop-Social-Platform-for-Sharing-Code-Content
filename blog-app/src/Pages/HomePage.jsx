@@ -13,7 +13,6 @@ import bash from "highlight.js/lib/languages/bash";
 
 import Card from "../components/UI/Card";
 import Skeleton from "../components/UI/Skeleton";
-import CodeSnippetWindow from "../components/UI/CodeSnippetWindow";
 
 import {
   getAllPosts,
@@ -34,60 +33,7 @@ hljs.registerLanguage("bash", bash);
 
 // ================= PREVIEW =================
 
-function extractPostPreview(content = "") {
 
-  const fenceMatch = content.match(/```([\s\S]*?)```/);
-
-  if (fenceMatch) {
-
-    let rawInner = fenceMatch[1].trim();
-
-    let language = "javascript";
-
-    const knownLanguages = [
-      "javascript",
-      "typescript",
-      "html",
-      "css",
-      "json",
-      "python",
-      "bash",
-      "js",
-      "ts",
-      "py",
-      "sh",
-    ];
-
-    const firstWordMatch = rawInner.match(
-      /^([a-z0-9_-]+)\s+([\s\S]*)$/i
-    );
-
-    if (
-      firstWordMatch &&
-      knownLanguages.includes(
-        firstWordMatch[1].toLowerCase()
-      )
-    ) {
-
-      language = firstWordMatch[1].toLowerCase();
-
-      rawInner = firstWordMatch[2];
-    }
-
-    return {
-      type: "code",
-      language,
-      value: rawInner,
-      text: content.replace(fenceMatch[0], "").trim(),
-    };
-  }
-
-  return {
-    type: "text",
-    value: content.trim(),
-    text: content.trim(),
-  };
-}
 
 
 
@@ -138,7 +84,6 @@ function FeedCard({ post }) {
     post.likes?.length || 0
   );
 
-  const preview = extractPostPreview(post.content || "");
 
   const authorId =
     post.author?.id ||
@@ -253,9 +198,7 @@ function FeedCard({ post }) {
 
               {" "}
 
-              <span className="text-zinc-400">
-                — {preview.text || "No preview available."}
-              </span>
+              
 
             </Link>
 
@@ -296,7 +239,7 @@ function FeedCard({ post }) {
 
 
           {/* CODE */}
-          {preview.type === "code" && (
+          {post.iscode && (
             <>
            <div className="flex items-center  justify-between  border-white/10 bg-[#31395A]  py-4 ">
 

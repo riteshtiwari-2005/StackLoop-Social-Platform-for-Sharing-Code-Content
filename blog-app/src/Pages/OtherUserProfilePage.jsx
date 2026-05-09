@@ -19,7 +19,7 @@ export default function OtherUserProfilePage() {
       try {
         const response = await axios.get(`/auth/v1/postuser/${id}`);
         const recent = await axios.post(`/auth/v1/recentpost/${id}`);
-        setProfile(response.data.user || {});
+        setProfile(response.data || {});
         setPosts(recent.data.postdata || []);
       } catch (error) {
         console.error(error);

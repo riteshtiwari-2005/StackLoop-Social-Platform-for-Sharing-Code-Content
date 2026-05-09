@@ -13,13 +13,11 @@ import RegisterPage from "./Pages/RegisterPage";
 import SinglePostPage from "./Pages/SinglePostPage";
 import { buyrazorpay } from "./services/paymentService";
 import CodeEditor from "./Pages/CodeEditor";
-import { useState } from "react";
+import { useState,useEffect } from "react";
 import axios from "./services/api";
 import { Editor } from "@monaco-editor/react";
 
 const TAGS = ["Web", "Devtools", "Product", "Design", "API", "UX", "AI", "Frontend", "Backend"];
-const CREW = ["Maya", "Rohan", "Vipul", "Nia", "James"];
-
 function AppIcon({ type, className = "h-4 w-4" }) {
   if (type === "home") {
     return (
@@ -249,6 +247,23 @@ function LeftRail() {
 }
 
 function RightRail() {
+const [user,setuser]=useState([]);
+useEffect(()=>{
+  
+  const fetchRecentUsers=async()=>{
+    try{
+      const response=await axios.get("/auth/recentuser");
+      setuser(response.data.user);
+    }
+    catch(err){
+      console.log("Error fetching recent users:", err);
+    }
+  }
+  fetchRecentUsers();
+},[])    
+
+
+
   return (
     <aside className="hidden 2xl:block">
       <div className="sticky top-24 space-y-4">
@@ -266,18 +281,18 @@ function RightRail() {
         <div className="surface-card p-4">
           <p className="mb-3 text-xs uppercase tracking-[0.22em] text-zinc-500">New Creators</p>
           <div className="space-y-2">
-            {CREW.map((name) => (
-              <div key={name} className="flex items-center justify-between rounded-xl border border-white/10 bg-black/90 px-3 py-2">
+            {user.map((name) => (
+              <div key={name._id} className="flex items-center justify-between rounded-xl border border-white/10 bg-black/90 px-3 py-2">
                 <div className="flex items-center gap-2">
                   <span className="inline-flex h-7 w-7 items-center justify-center rounded-lg border border-white/10 bg-zinc-900 text-xs font-semibold text-zinc-200">
-                    {name[0]}
+                    {name.name|| "U"}
                   </span>
-                  <span className="text-sm text-zinc-300">{name}</span>
+                  <span className="text-sm text-zinc-300">{name.name || "Unknown User"}</span>
                 </div>
                 <button
                   type="button"
                   className="inline-flex h-6 w-6 items-center justify-center rounded-md border border-white/10 bg-zinc-900 text-xs text-zinc-500 transition-colors hover:border-brand-300/35 hover:text-brand-200"
-                  aria-label={`Follow ${name}`}
+                  aria-label={`Follow ${name.name || "user"}`}
                 >
                   +
                 </button>
@@ -291,6 +306,7 @@ function RightRail() {
 }
 
 function AppLayout() {
+
   const location = useLocation();
   const isAuthPage = ["/login", "/register"].includes(location.pathname);
   const [search, setsearch] = useState("");

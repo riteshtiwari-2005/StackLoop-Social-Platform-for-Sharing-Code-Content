@@ -133,7 +133,6 @@ export default function ProfilePage() {
           <p className="app-chip">Recent posts</p>
           <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
 
-
             {recentposts.map((post) => (
               <div key={post._id} className="overflow-hidden rounded-2xl border border-white/10 bg-black">
                 <img

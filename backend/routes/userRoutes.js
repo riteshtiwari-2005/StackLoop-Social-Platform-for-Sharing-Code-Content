@@ -35,5 +35,8 @@ router.post("/viewprofile", authMiddleware, userController.viewProfile);
 // Get Profile by username
 router.get("/profile/:username", authMiddleware, userController.getProfileByUsername);
 
+// user recet top 5
+router.get("/recentuser", authMiddleware, userController.getRecentUser);
+
 
 module.exports = router;

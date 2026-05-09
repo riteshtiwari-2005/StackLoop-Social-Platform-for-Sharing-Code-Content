@@ -44,6 +44,7 @@ const EXTENSION_LANGUAGE_MAP = {
 
 export default function CreatePostPage() {
     const [snippetCode, setSnippetCode] = useState("");
+  const [isCodeMode, setIsCodeMode] = useState(true);
 
   const [formData, setFormData] = useState({
     title: "",
@@ -65,7 +66,6 @@ export default function CreatePostPage() {
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState(null);
   const [editorMode, setEditorMode] = useState("Mixed");
-  const [isCodeMode, setIsCodeMode] = useState(true);
 
   const modeOptions = ["Mixed", "Code", "Media"];
 
@@ -78,6 +78,12 @@ export default function CreatePostPage() {
       ...prev,
       [name]: type === "checkbox" ? checked : value,
     }));
+
+    
+
+    
+
+
   };
 
   const handleSnippetUpload = async (event) => {
@@ -115,18 +121,6 @@ export default function CreatePostPage() {
   const handleSubmit = async (event) => {
     event.preventDefault();
 
-    const normalizedContent = formData.content.trim();
-    const normalizedSnippet = snippetCode.trim();
-
-    if (!normalizedContent && !normalizedSnippet) {
-      setToast({
-        message:
-          "Add post content or a code snippet before publishing",
-        type: "error",
-      });
-
-      return;
-    }
 
     setLoading(true);
 
@@ -135,25 +129,17 @@ export default function CreatePostPage() {
 
       payload.append("title", formData.title);
       payload.append("isPremium", formData.isPremium);
-      payload.append("iscoded", formData.iscoded);
+      payload.append("iscoded", Boolean(formData.iscoded));
 
-      if (formData.iscoded) {
         payload.append("code", snippetCode);
-      }
+      
 
       payload.append("tag", formData.tag);
       payload.append("tag1", snippetLanguage);
 
-      const fullContent = [
-        normalizedContent,
-        normalizedSnippet
-          ? `\`\`\`${snippetLanguage}\n${normalizedSnippet}\n\`\`\``
-          : "",
-      ]
-        .filter(Boolean)
-        .join("\n\n");
+      
 
-      payload.append("content", fullContent);
+      payload.append("content", formData.content);
 
       if (formData.image) {
         payload.append("image", formData.image);
@@ -344,14 +330,18 @@ export default function CreatePostPage() {
                 <input
                   id="isCodeMode"
                   type="checkbox"
-                  checked={isCodeMode}
+                  checked={formData.iscoded}
                   onChange={(e) => {
-                    setIsCodeMode(e.target.checked);
-
                     setFormData((prev) => ({
                       ...prev,
+                      code: "",
                       iscoded: e.target.checked,
                     }));
+
+setFormData((prev) => ({
+  ...prev,
+  iscoded: e.target.checked,
+}));                    console.log(formData.iscoded)
                   }}
                   className="mt-1 h-4 w-4"
                 />
@@ -425,7 +415,7 @@ export default function CreatePostPage() {
             )}
 
             {/* Monaco Editor */}
-            {isCodeMode && (
+            {formData.iscoded && (
               <div className="space-y-5 flex flex-col space-x-4 rounded-2xl border border-white/10 bg-black p-5 gap-3 ">
 
                 <div className="flex flex-wrap items-center justify-between gap-4">
@@ -498,7 +488,7 @@ export default function CreatePostPage() {
                       theme="vs-dark"
                       value={snippetCode}
                       onChange={(value) =>
-                        setSnippetCode(value || "")
+                        setSnippetCode(value)
                       }
                       options={{
                         lineNumbers: "on",

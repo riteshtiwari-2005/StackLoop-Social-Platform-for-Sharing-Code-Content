@@ -128,9 +128,8 @@ return res.status(200).json({
 
 exports.createPost = async (req, res) => {
   try {
-    console.log("FILE:", req.file); // ✅ correct logging
 
-    const { title, content, isPremium, image: bodyImage, tag,code ,tag1} = req.body;
+    const { title, content, isPremium, image: bodyImage, tag,code ,tag1,iscoded} = req.body;
     console.log(code)
 
     if (!title || !content ) {
@@ -153,7 +152,8 @@ exports.createPost = async (req, res) => {
       isPremium: isPremium === 'true' || isPremium === true || false,
       tags: [tag],
       language: tag1,
-      code: code || ""
+      code: code || "",
+      iscode: iscoded
     });
 
     return res.status(201).json({
@@ -297,9 +297,9 @@ exports.likepost = async (req, res) => {
 exports.recentpost = async (req, res) => {
   try {
     const username = req.params.username;
-    const userdata = await Profile.findOne({ username: username }).populate("user")
-    const userid = userdata.user._id;
-    const postdata = await Post.find({ author: userid }).sort({ createdAt: -1 }).limit(2)
+    console.log(username);
+    const userdata = await Profile.findOne({ author: username }).populate("user")
+    const postdata = await Post.find({ author: username }).sort({ createdAt: -1 }).limit(2)
     return res.status(201).json({
       success: true,
       postdata,
@@ -311,6 +311,7 @@ exports.recentpost = async (req, res) => {
   }
 
   catch (err) {
+    console.log(err)
     return res.status(500).json({
       "message": "false",
       err: err

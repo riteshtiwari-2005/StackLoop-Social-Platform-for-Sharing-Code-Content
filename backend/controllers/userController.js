@@ -1,5 +1,6 @@
 const Profile = require("../models/Profile");
 const Post = require("../models/Post");
+const User = require("../models/User");
 
 exports.editProfile = async (req, res) => {
   try {
@@ -81,3 +82,23 @@ exports.getProfileByUsername = async (req, res) => {
     });
   }
 };
+
+exports.getRecentUser = async (req, res) => {
+  try{
+    const newuser=await User.find().limit(5).sort({createdAt:-1});
+    return res.status(200).json({
+      user:newuser
+    });
+
+
+    
+
+  }
+
+  catch(err){
+    return res.status(500).json({
+      message: err.message,
+    });
+  }
+
+}

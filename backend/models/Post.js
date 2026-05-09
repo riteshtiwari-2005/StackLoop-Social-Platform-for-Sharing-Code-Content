@@ -61,7 +61,7 @@ const postSchema = new mongoose.Schema(
 
     iscode:{
       type: Boolean,
-      default: false
+      default: false,
     },
 
     language: { 
