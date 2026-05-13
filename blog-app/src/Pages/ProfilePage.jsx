@@ -1,12 +1,17 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
+import { useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom";
 import Avatar from "../components/UI/Avatar";
 import Button from "../components/UI/Button";
 import Card from "../components/UI/Card";
 import InputField from "../components/UI/InputField";
 import Modal from "../components/UI/Modal";
+import { logout } from "../features/auth/authSlice";
 import { getCurrentUserProfile, updateProfile } from "../services/userService";
 
 export default function ProfilePage() {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
   const [profile, setProfile] = useState(null);
   const [openModal, setOpenModal] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -20,7 +25,7 @@ export default function ProfilePage() {
       try {
         const data = await getCurrentUserProfile();
         setProfile(data.profile);
-        setRecentPosts(data.posts);
+        setRecentPosts(Array.isArray(data.posts) ? data.posts : []);
         setFormData({
           username: data.profile.username || "",
           bio: data.profile.bio || "",
@@ -75,6 +80,11 @@ export default function ProfilePage() {
     }
   };
 
+  const handleLogout = () => {
+    dispatch(logout());
+    navigate("/login", { replace: true });
+  };
+
   return (
     <div className="space-y-6">
       <Card className="overflow-hidden border-brand-300/20 bg-gradient-to-br from-zinc-950 to-brand-900/20 p-0">
@@ -127,29 +137,55 @@ export default function ProfilePage() {
               )}
             </div>
           </Card>
+
+          <Card className="p-4">
+            <p className="app-chip">Account</p>
+            <p className="mt-3 text-sm leading-6 text-zinc-400">
+              Manage your session and security settings from one place.
+            </p>
+            <Button
+              type="button"
+              variant="danger"
+              className="mt-4 w-full justify-center"
+              onClick={handleLogout}
+              aria-label="Log out of your account"
+            >
+              Log out
+            </Button>
+          </Card>
         </div>
 
         <Card className="p-5">
           <p className="app-chip">Recent posts</p>
           <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
+            {recentposts.length === 0 ? (
+              <p className="col-span-full rounded-2xl border border-dashed border-white/10 bg-black/40 px-4 py-6 text-center text-sm text-zinc-500">
+                No recent posts yet.
+              </p>
+            ) : (
+              recentposts.map((post) => {
+                const hasImage =
+                  typeof post.image === "string" &&
+                  post.image.trim().length > 0;
 
-            {recentposts.map((post) => (
-              <div key={post._id} className="overflow-hidden rounded-2xl border border-white/10 bg-black">
-                <img
-                  src={post.image || "https://thumbs.dreamstime.com/b/no-image-available-icon-flat-vector-no-image-available-icon-flat-vector-illustration-132482953.jpg"}
-                  alt="Post"
-                  className={`h-40 w-full object-cover }`}
-                />
-                <div className="p-4">
-                  <h3 className="font-display text-2xl text-zinc-100">{post.title}</h3>
-                  <p className="mt-1 text-sm text-zinc-400">{post.content}</p>
-                </div>
-              </div>
-            ))}
-
-
-
-
+                return (
+                  <div key={post._id} className="overflow-hidden rounded-2xl border border-white/10 bg-black/80 transition-colors duration-200 hover:border-white/20">
+                    {hasImage && (
+                      <img
+                        src={post.image}
+                        alt={post.title}
+                        className="h-40 w-full object-cover"
+                        loading="lazy"
+                      />
+                    )}
+                    <div className="p-4">
+                      <h3 className="font-display text-2xl text-zinc-100">{post.title}</h3>
+                      <p className="mt-1 line-clamp-3 text-sm text-zinc-400">{post.content}</p>
+                    </div>
+                  </div>
+                );
+              })
+            )}
           </div>
         </Card>
       </div>

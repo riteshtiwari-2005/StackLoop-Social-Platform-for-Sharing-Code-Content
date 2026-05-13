@@ -8,17 +8,17 @@ const PORT = process.env.PORT ;
 // Middleware
 app.use(cors());    
 // db connection 
-const  connectDb=require("../backend/config/db.js")
+const  connectDb=require("./config/db.js")
 connectDb() 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use('/uploads', express.static('uploads'));
 // Routes
-app.use("/auth",require("../backend/routes/userRoutes.js"))
-//post routes
-app.use("/auth/v1",require("../backend/routes/postRoutes.js"))
-//comment routes
-app.use("/auth/v2",require("../backend/routes/commentRoutes.js"))
+app.use("/auth", require("./routes/userRoutes.js"))
+// post routes
+app.use("/auth/v1", require("./routes/postRoutes.js"))
+// comment routes
+app.use("/auth/v2", require("./routes/commentRoutes.js"))
 
 
 
