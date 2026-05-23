@@ -75,6 +75,7 @@ const postSchema = new mongoose.Schema(
       "json",
       "python",
       "bash",
+      "other"
     ],
 
   },

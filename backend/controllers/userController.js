@@ -42,7 +42,7 @@ exports.viewProfile = async (req, res) => {
   try {
     const userId = req.user.id;
     const profiledata = await Post.find({ author: userId,code:""
-     }).limit(2).sort({ createdAt: -1 });
+     }).sort({ createdAt: -1 });
 
 
     const userdata = await Profile.findOneAndUpdate(

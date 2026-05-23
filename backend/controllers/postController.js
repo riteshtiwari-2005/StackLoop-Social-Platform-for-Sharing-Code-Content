@@ -236,7 +236,7 @@ exports.getPostById = async (req, res) => {
 exports.getPostUser = async (req, res) => {
   try {
     const username = req.params.username;
-    const user = await Profile.findOne({ username });
+    const user = await Profile.findOne({ user:username });
     return res.status(200).json({
       user
     });
@@ -298,16 +298,15 @@ exports.recentpost = async (req, res) => {
   try {
     const username = req.params.username;
     console.log(username);
-    const userdata = await Profile.findOne({ author: username }).populate("user")
-    const postdata = await Post.find({ author: username }).sort({ createdAt: -1 }).limit(2)
+    const userdata = await Profile.findOne({ user: username })
+    const postdata = await Post.find({ author: username }).sort({ createdAt: -1 }).populate("author")
+    console.log(userdata);
+    
     return res.status(201).json({
       success: true,
       postdata,
       postcount: postdata.length
     })
-
-
-
   }
 
   catch (err) {
@@ -342,13 +341,6 @@ exports.createOrder = async (req, res) => {
     });
 
     return res.json(order);
-
-
-
-
-
-
-
   }
 
   catch (err) {
